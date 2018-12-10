@@ -1,0 +1,451 @@
+#include "ofApp.h"
+
+//--------------------------------------------------------------
+void ofApp::setup(){
+    bAltKeyDown = false;
+    bCtrlKeyDown = false;
+    bLanderLoaded = false;
+    
+    cam.setDistance(10);
+    cam.setNearClip(.1);
+    cam.setFov(65.5);
+    cam.setPosition(0, -10, 25);
+    cam.rotateDeg(180, 0, 0, 1);
+    cam.disableMouseInput();
+    
+    topCam.setNearClip(.1);
+    topCam.setFov(65.5);
+    topCam.setPosition(0, -100, 0);
+    topCam.lookAt(glm::vec3(0, 0, 0));
+    
+    followCam.setNearClip(.1);
+    followCam.setFov(65.5);
+    followCam.setPosition(0, 10, 0);
+    
+    // set current camera;
+    //
+    theCam = &cam;
+    
+    ofSetVerticalSync(true);
+    ofEnableSmoothing();
+    ofEnableDepthTest();
+    
+    // load BG image
+    //
+    bBackgroundLoaded = backgroundImage.load("images/starfield-plain.jpg");
+
+    // setup rudimentary lighting
+    //
+    initLightingAndMaterials();
+    
+    mars.loadModel("geo/mars-low-v2.obj");
+    //mars.loadModel("geo/moon-low-v1.obj");
+    //mars.loadModel("geo/moon-houdini.obj");
+    //mars.loadModel("geo/moon-crater-v1.obj");
+    mars.setScaleNormalization(false);
+    marsMesh = mars.getMesh(0);
+    boundingBox = meshBounds(marsMesh);
+    int start = ofGetElapsedTimeMillis();
+    octree.create(marsMesh, 8);
+    int end = ofGetElapsedTimeMillis();
+    cout << "Octree built in " << end - start << " milliseconds" << endl;
+    
+    ofDisableArbTex();
+    //ofLoadImage(mTex, "images/glow.png");
+    ofLoadImage(mTex, "images/fire.jpg");
+    
+    // load lander model
+    //
+    if (lander.loadModel("geo/lander.obj")) {
+        lander.setScaleNormalization(false);
+        lander.setScale(.1, .1, .1);
+        
+        // Lander is represented as a single particle in the system
+        // Initially there is just a turbulence force
+        landerSystem = new ParticleSystem();
+        Particle landerParticle;
+        landerParticle.lifespan = -1;
+        landerParticle.position = ofVec3f(0,10,0);
+        landerSystem->add(landerParticle);
+
+        // Maunually creating collision points
+        vector<ofVec3f> corners;
+        float h = 0.4;
+        float w = 0.15;
+        corners.push_back(ofVec3f( w,  10,      w));
+        corners.push_back(ofVec3f(-w,  10,      w));
+        corners.push_back(ofVec3f( w,  10,     -w));
+        corners.push_back(ofVec3f(-w,  10,     -w));
+        corners.push_back(ofVec3f( w,  10 + h,  w));
+        corners.push_back(ofVec3f(-w,  10 + h,  w));
+        corners.push_back(ofVec3f( w,  10 + h, -w));
+        corners.push_back(ofVec3f(-w,  10 + h, -w));
+
+        for (auto corner : corners){
+            Particle p;
+            p.lifespan = -1;
+            p.position = corner;
+            landerSystem->add(p);
+        }
+
+        // No turbulence for now, becauase it would break the multi point collision detection
+        // landerSystem->addForce(new TurbulenceForce(ofVec3f(-0.1,-0.1,-0.1),
+        //                                            ofVec3f( 0.1, 0.1, 0.1)));
+        landerSystem->addForce(new GravityForce(ofVec3f(0,-1,0)));
+        // thrust force will be updated by keyPressed
+        // thrust force is responsible for moving the lander
+        thrust = new ThrusterForce(ofVec3f(0,0,0));
+        landerSystem->addForce(thrust);
+        
+        exhaust = new ParticleEmitter(new ParticleSystem());
+        exhaust->type = DiscEmitter;
+        exhaust->setGroupSize(50);
+        exhaust->setLifespan(.3);
+        exhaust->setParticleRadius(.01);
+        exhaust->setRate(20);
+        exhaust->setVelocity(ofVec3f(0,-1,0));
+        bLanderLoaded = true;
+    }
+    else {
+        cout << "Error: Can't load model" << "geo/lander.obj" << endl;
+        ofExit(0);
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::update(){
+    doCollisions(); // Detect collisions and update velocity accordingly
+    landerSystem->update();
+    lander.setPosition(-landerSystem->particles[0].position.x,
+                       -landerSystem->particles[0].position.y,
+                       landerSystem->particles[0].position.z);
+    exhaust->setPosition(ofVec3f(-landerSystem->particles[0].position.x,
+                       -landerSystem->particles[0].position.y,
+                       landerSystem->particles[0].position.z));
+    exhaust->update();
+    
+    // Make the follow cam rotate around the lander
+    followCamAngle += 0.005;
+    ofVec3f landerPos = lander.getPosition();
+    followCam.setPosition(ofVec3f(landerPos.x + 2 * sin(followCamAngle),
+                                  landerPos.y - 1,
+                                  landerPos.z + 2 * cos(followCamAngle)));
+    followCam.lookAt(lander.getPosition(), ofVec3f(0,-1,0));
+    
+    // Prevent exhaust particles from coming out the top of the lander
+    if (landerSystem->particles[0].velocity.y < 0){
+        exhaust->setVelocity(landerSystem->particles[0].velocity + ofVec3f(0,-5,0));
+    }else {
+        exhaust->setVelocity(ofVec3f(0,-5,0));
+    }
+    
+    // Update the above ground level
+    agl = getAGL();
+}
+
+//--------------------------------------------------------------
+void ofApp::draw(){
+    if (bBackgroundLoaded) {
+        ofPushMatrix();
+        ofDisableDepthTest();
+        ofSetColor(50, 50, 50);
+        ofScale(2, 2);
+        backgroundImage.draw(-200, -100);
+        ofEnableDepthTest();
+        ofPopMatrix();
+    }
+    
+    theCam->begin();
+    ofPushMatrix();
+    if (bWireframe) {                    // wireframe mode  (include axis)
+        ofDisableLighting();
+        ofSetColor(ofColor::slateGray);
+        if (bLanderLoaded) {
+            lander.drawWireframe();
+        }
+    }
+    else {
+        ofEnableLighting();              // shaded mode
+        mars.drawFaces();
+        if (bLanderLoaded) {
+            lander.drawFaces();
+        }
+    }
+    
+    // Draw the exhaust with a texture
+    ofPushMatrix();
+    mTex.bind();
+    exhaust->draw();
+    mTex.unbind();
+    ofPopMatrix();
+    
+    // draw the collision points for debugging
+    for (auto p : landerSystem->particles){
+        ofSetColor(255);
+        ofDrawSphere(-p.position.x, -p.position.y, p.position.z, 0.01);
+    }
+    
+    ofPopMatrix();
+    theCam->end();
+    
+    // draw screen data
+    //
+    ofSetColor(ofColor::white);
+    string str;
+    str = "Frame Rate: " + std::to_string(ofGetFrameRate());
+    ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
+    str = "AGL: " + std::to_string(agl);
+    ofDrawBitmapString(str, ofGetWindowWidth() - 170, 30);
+}
+
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key){
+    float speed = .3;
+    switch (key) {
+        case 'C':
+        case 'c':
+            if (cam.getMouseInputEnabled()) cam.disableMouseInput();
+            else cam.enableMouseInput();
+            break;
+        case 'F':
+        case 'f':
+            ofToggleFullscreen();
+            break;
+        case 'H':
+        case 'h':
+            break;
+        case 'P':
+        case 'p':
+            break;
+        case 'r':
+            cam.reset();
+            break;
+        case 's':
+            //savePicture();
+            break;
+        case 't':
+            break;
+        case 'u':
+            break;
+        case 'v':
+            //togglePointsDisplay();
+            break;
+        case 'V':
+            break;
+        case 'w':
+            //toggleWireframeMode();
+            break;
+        case OF_KEY_F1:
+            theCam = &cam;
+            break;
+        case OF_KEY_F2:
+            theCam = &followCam;
+            break;
+        case OF_KEY_F3:
+            theCam = &topCam;
+            break;
+        case OF_KEY_ALT:
+            cam.enableMouseInput();
+            bAltKeyDown = true;
+            break;
+        case OF_KEY_CONTROL:
+            bCtrlKeyDown = true;
+            break;
+        case OF_KEY_SHIFT:
+            break;
+        case OF_KEY_DEL:
+            break;
+        case OF_KEY_UP:
+            if (bAltKeyDown)
+                thrust->add(ofVec3f(0,0,-1) * speed);
+            else
+                thrust->add(ofVec3f(0,1,0) * speed);
+            exhaust->start();
+            break;
+        case OF_KEY_DOWN:
+            if (bAltKeyDown)
+                thrust->add(ofVec3f(0,0,1) * speed);
+            else
+                thrust->add(ofVec3f(0,-1,0) * speed);
+            exhaust->start();
+            break;
+        case OF_KEY_LEFT:
+            thrust->add(ofVec3f(-1,0,0) * speed);
+            exhaust->start();
+            break;
+        case OF_KEY_RIGHT:
+            thrust->add(ofVec3f(1,0,0) * speed);
+            exhaust->start();
+            break;
+        default:
+            break;
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key){
+    switch (key) {
+        case OF_KEY_ALT:
+            cam.disableMouseInput();
+            bAltKeyDown = false;
+            break;
+        case OF_KEY_CONTROL:
+            bCtrlKeyDown = false;
+            break;
+        case OF_KEY_SHIFT:
+            break;
+        default:
+            thrust->set(ofVec3f(0,0,0));
+            exhaust->stop();
+            break;
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseEntered(int x, int y){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseExited(int x, int y){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){ 
+
+}
+
+// Detect collisons between the lander and the surface
+// Author: Cyrus
+void ofApp::doCollisions(){
+    // Check if collided
+    bool collided = false;
+    ofVec3f inputVelocity = landerSystem->particles[0].velocity;
+    float delta = 5 * landerSystem->particles[0].velocity.length();
+    TreeNode potential;
+    int index;
+    for (int i = 0; i < landerSystem->particles.size(); i++){
+        Particle p = landerSystem->particles[i];
+        if ( octree.collides(p, delta, potential, index) ){
+            collided = true;
+            break;
+        }
+    }
+    if (collided){ // Do surface normal reflection
+        ofVec3f normal = marsMesh.getNormal(potential.points[index]);
+        // Refection vector calculation
+        ofVec3f reflect = inputVelocity - ((2 * inputVelocity.dot(normal)) * normal);
+        for (Particle& p : landerSystem->particles){
+            p.velocity = (reflect + normal).normalize().scale(p.velocity.length() * (2.0/3.0));
+        }
+    }
+}
+
+// Finds the above ground level of the lander
+// Author: Cyrus
+float ofApp::getAGL(){
+    // To find AGL shoot a ray downwards from the lander
+    ofVec3f landerPos = lander.getPosition();
+    Ray ray = Ray(Vector3(landerPos.x, landerPos.y, landerPos.z),
+                  Vector3(0, 1, 0));
+    TreeNode possible;
+    if (octree.intersect(ray, possible)){
+        float sumDist = 0;
+        for (int v : possible.points){
+            ofVec3f point = marsMesh.getVertex(v);
+            point = ofVec3f(-point.x,-point.y,point.z);
+            sumDist += point.distance(landerPos);
+        }
+        // Draw the leaf node box that the ray intersected with, for debugging
+        // Octree::drawBox(possible.box);
+        return sumDist / possible.points.size();
+    }
+    else{
+        cout << "Could not find AGL, ray did not intersect..." << endl;
+        return -1;
+    }
+}
+
+// return a Mesh Bounding Box for the entire Mesh
+//
+Box ofApp::meshBounds(const ofMesh & mesh) {
+    int n = mesh.getNumVertices();
+    ofVec3f v = mesh.getVertex(0);
+    ofVec3f max = v;
+    ofVec3f min = v;
+    for (int i = 1; i < n; i++) {
+        ofVec3f v = mesh.getVertex(i);
+        
+        if (v.x > max.x) max.x = v.x;
+        else if (v.x < min.x) min.x = v.x;
+        
+        if (v.y > max.y) max.y = v.y;
+        else if (v.y < min.y) min.y = v.y;
+        
+        if (v.z > max.z) max.z = v.z;
+        else if (v.z < min.z) min.z = v.z;
+    }
+    return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+}
+
+void ofApp::initLightingAndMaterials() {
+    
+    static float ambient[] =
+    { .5f, .5f, .5, 1.0f };
+    static float diffuse[] =
+    { .7f, .7f, .7f, 1.0f };
+    
+    static float position[] =
+    {20.0, 20.0, 20.0, 0.0 };
+    
+    static float lmodel_ambient[] =
+    { 1.0f, 1.0f, 1.0f, 1.0f };
+    
+    static float lmodel_twoside[] =
+    { GL_TRUE };
+    
+    
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT1, GL_POSITION, position);
+    
+    
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    glShadeModel(GL_SMOOTH);
+}
