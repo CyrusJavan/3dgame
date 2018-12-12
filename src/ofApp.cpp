@@ -56,7 +56,7 @@ void ofApp::setup(){
     
     // load lander model
     //
-    if (lander.loadModel("geo/lander.obj")) {
+    if (lander.loadModel("geo/barrel.obj")) {
         lander.setScaleNormalization(false);
         lander.setScale(.1, .1, .1);
         
