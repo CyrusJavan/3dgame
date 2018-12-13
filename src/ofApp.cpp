@@ -253,8 +253,8 @@ void ofApp::draw(){
         ofPushMatrix();
         ofDisableDepthTest();
         ofSetColor(255);
-        ofScale(.3, .3);
-        backgroundImage.draw(-200, -100);
+        ofScale(.4, .4);
+        backgroundImage.draw(0, 0);
         ofEnableDepthTest();
         ofPopMatrix();
     }
@@ -347,7 +347,7 @@ void ofApp::draw(){
         str = "Score: " + std::to_string(score);
         ofDrawBitmapString(str, ofGetWindowWidth() - 170, 60);
         
-        ofDrawBitmapString("ARROW KEYS to move, R to reset position, B to quit", 20, 20);
+        ofDrawBitmapString("ARROW KEYS or WASDQE to move, R to reset position, B to quit", 20, 20);
         ofDrawBitmapString("1 for normal perspective, 2 for follow cam, 3 for top down view", 20, 40);
         ofDrawBitmapString("O to un/draw Octree, L to un/draw Leaf Nodes", 20, 60);
         
@@ -381,9 +381,25 @@ void ofApp::keyPressed(int key){
         case 'P':
         case 'p':
             break;
-        case 'r':
+        case 'r': {
             //cam.reset();
             landerSystem->particles[0].position = ofVec3f(0,10,0);
+            vector<ofVec3f> corners;
+            float h = 1.6;
+            float w = 0.55;
+            corners.push_back(ofVec3f( w,  10,      w));
+            corners.push_back(ofVec3f(-w,  10,      w));
+            corners.push_back(ofVec3f( w,  10,     -w));
+            corners.push_back(ofVec3f(-w,  10,     -w));
+            corners.push_back(ofVec3f( w,  10 + h,  w));
+            corners.push_back(ofVec3f(-w,  10 + h,  w));
+            corners.push_back(ofVec3f( w,  10 + h, -w));
+            corners.push_back(ofVec3f(-w,  10 + h, -w));
+            
+            for (int i=1; i<landerSystem->particles.size(); i++){
+                landerSystem->particles[i].position = corners[i-1];
+            }
+        }
             break;
         case 'b':
             gameStarted = false;
