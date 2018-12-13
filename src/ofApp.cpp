@@ -143,7 +143,7 @@ void ofApp::setup(){
         // No turbulence for now, becauase it would break the multi point collision detection
         // landerSystem->addForce(new TurbulenceForce(ofVec3f(-0.1,-0.1,-0.1),
         //                                            ofVec3f( 0.1, 0.1, 0.1)));
-        ofVec3f gravity = ofVec3f(0,.1,0);
+        ofVec3f gravity = ofVec3f(0,-.1,0);
         landerSystem->addForce(new GravityForce(gravity));
         // thrust force will be updated by keyPressed
         // thrust force is responsible for moving the lander
@@ -383,7 +383,7 @@ void ofApp::keyPressed(int key){
             if (bAltKeyDown)
                 thrust->add(ofVec3f(0,0,-1) * speed);
             else
-                thrust->add(ofVec3f(0,-1,0) * speed);
+                thrust->add(ofVec3f(0,1,0) * speed);
             exhaust->start();
             if (!rocketSound.isPlaying()){
                 rocketSound.play();
@@ -393,7 +393,7 @@ void ofApp::keyPressed(int key){
             if (bAltKeyDown)
                 thrust->add(ofVec3f(0,0,1) * speed);
             else
-                thrust->add(ofVec3f(0,1,0) * speed);
+                thrust->add(ofVec3f(0,-1,0) * speed);
             exhaust->start();
             if (!rocketSound.isPlaying()){
                 rocketSound.play();
