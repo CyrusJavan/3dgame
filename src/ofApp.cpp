@@ -450,6 +450,25 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
+//    ofVec3f mouse(mouseX, mouseY);
+//    ofVec3f rayPoint = cam.screenToWorld(mouse);
+//    ofVec3f rayDir = rayPoint - cam.getPosition();
+//    rayDir.normalize();
+//    Ray ray = Ray(Vector3(rayPoint.x, rayPoint.y, rayPoint.z),
+//                  Vector3(rayDir.x, rayDir.y, rayDir.z));
+//
+//    float startTime = ofGetElapsedTimeMillis();
+//    for(int i=0; i<octrees.size(); i++){
+//        if (octrees[i].intersect(ray, octrees[i].root, octrees[i].selectedNode)) {
+//            //rayIntersected = true;
+//            int pt;
+//            pt = octrees[i].selectedNode.points[0];
+//            ofVec3f intersectPoint = octrees[i].mesh.getVertex(pt);
+//            cout << "(x,y,z): " << intersectPoint << endl;
+    //        float endTime = ofGetElapsedTimeMillis();
+    //        cout << endTime - startTime << " milliseconds to select correct leaf node with " << octree.selectedNode.points.size() << " points" << endl << endl;
+//            }
+//        }
 
 }
 
@@ -531,10 +550,10 @@ void ofApp::doCollisions(){
     // check collisions for space craft
     
     if(checkCollisions(landerSystem, delta, potential, index)){
-        cout << "Barrel collision" << endl;
-        cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
+        //cout << "Barrel collision" << endl;
+//        cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
         performCollisions(landerSystem, potential, index, inputVelocity);
-        cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
+//        cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
     }
     
     TreeNode potential2;
