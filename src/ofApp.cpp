@@ -56,7 +56,7 @@ void ofApp::setup(){
     for(int i=0; i < scene.getNumMeshes(); i ++){
         ofMesh sceneMesh = scene.getMesh(i);
         Octree octree = Octree();
-        octree.create(sceneMesh, 5);
+        octree.create(sceneMesh, 6);
         octrees.push_back(octree);
     }
     
@@ -88,7 +88,7 @@ void ofApp::setup(){
 //                              mars.getSceneMax().y,
 //                              mars.getSceneMax().z));
     int start = ofGetElapsedTimeMillis();
-    octree.create(marsMesh, 8);
+    octree.create(marsMesh, 6);
     int end = ofGetElapsedTimeMillis();
     cout << "Octree built in " << end - start << " milliseconds" << endl;
     
