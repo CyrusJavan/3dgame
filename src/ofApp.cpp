@@ -58,7 +58,7 @@ void ofApp::setup(){
     //
     if (lander.loadModel("geo/barrel.obj")) {
         lander.setScaleNormalization(false);
-        lander.setScale(.1, .1, .1);
+        lander.setScale(.3, .3, .3);
         
         // Lander is represented as a single particle in the system
         // Initially there is just a turbulence force
@@ -105,6 +105,23 @@ void ofApp::setup(){
         exhaust->setRate(20);
         exhaust->setVelocity(ofVec3f(0,-1,0));
         bLanderLoaded = true;
+        
+        //load the falling balls from the sky
+        ParticleSystem* ballSystem = new ParticleSystem();
+        ballSystem->addForce(new GravityForce(ofVec3f(0,1,0)));
+        ballSpawner = new ParticleEmitter(ballSystem);
+        ballSpawner->type = DirectionalEmitter;
+        ballSpawner->init();
+        //ballSpawner->setGroupSize(50);
+        ballSpawner->setLifespan(500);
+        ballSpawner->setParticleRadius(.1);
+        ballSpawner->setRate(1);
+        ballSpawner->setVelocity(ofVec3f(0,10,0));
+        ballSpawner->setPosition(ofVec3f(1,-10,5));
+        //ballSpawner->setOneShot(true);
+        ballSpawner->start();
+        //ballSpawner->setOneShot(true);
+        //ballSpawner->spawn(ofGetElapsedTimeMillis());
     }
     else {
         cout << "Error: Can't load model" << "geo/lander.obj" << endl;
@@ -123,7 +140,7 @@ void ofApp::update(){
                        -landerSystem->particles[0].position.y,
                        landerSystem->particles[0].position.z));
     exhaust->update();
-    
+    ballSpawner->update();
     // Make the follow cam rotate around the lander
     followCamAngle += 0.005;
     ofVec3f landerPos = lander.getPosition();
@@ -178,6 +195,9 @@ void ofApp::draw(){
     exhaust->draw();
     mTex.unbind();
     ofPopMatrix();
+    
+    // draw falling balls
+    ballSpawner->draw();
     
     // draw the collision points for debugging
     for (auto p : landerSystem->particles){
@@ -236,12 +256,15 @@ void ofApp::keyPressed(int key){
             //toggleWireframeMode();
             break;
         case OF_KEY_F1:
+        case '1':
             theCam = &cam;
             break;
         case OF_KEY_F2:
+        case '2':
             theCam = &followCam;
             break;
         case OF_KEY_F3:
+        case '3':
             theCam = &topCam;
             break;
         case OF_KEY_ALT:
@@ -346,30 +369,86 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 }
 
+bool ofApp::checkCollisions(ParticleSystem *ps, float delta, TreeNode& potential, int &returnIndex){
+    for(int i=0; i<ps->particles.size(); i++){
+        Particle p = ps->particles[i];
+        if(octree.collides(p, delta, potential, returnIndex )){
+            return true;
+        }
+    }
+}
+
+void ofApp::performCollisions(ParticleSystem *ps, TreeNode& potential, int & index, ofVec3f inputVelocity){
+    ofVec3f normal = marsMesh.getNormal(potential.points[index]);
+    float restitution = .3333;
+    //ofVec3f reflect = inputVelocity - (((1 + restitution) * inputVelocity.dot(normal)) * normal);
+    ofVec3f reflect = ((1 + restitution) * (-inputVelocity).dot(normal)) * normal;
+    for (Particle& p : ps->particles){
+        //cout << "old velocity " << p.velocity <<endl;
+        //p.velocity = (reflect + normal).normalize().scale(p.velocity.length() *(2.0/3.0));
+        p.velocity = reflect;
+        //cout << "new velocity " << p.velocity <<endl;
+    }
+}
+
 // Detect collisons between the lander and the surface
 // Author: Cyrus
 void ofApp::doCollisions(){
     // Check if collided
-    bool collided = false;
+    //bool collided = false;
     ofVec3f inputVelocity = landerSystem->particles[0].velocity;
     float delta = 5 * landerSystem->particles[0].velocity.length();
     TreeNode potential;
     int index;
-    for (int i = 0; i < landerSystem->particles.size(); i++){
-        Particle p = landerSystem->particles[i];
-        if ( octree.collides(p, delta, potential, index) ){
-            collided = true;
-            break;
-        }
+    
+//    for (int i = 0; i < landerSystem->particles.size(); i++){
+//        Particle p = landerSystem->particles[i];
+//        if ( octree.collides(p, delta, potential, index) ){
+//            collided = true;
+//            break;
+//        }
+//    }
+    
+    // check collisions for space craft
+    
+    if(checkCollisions(landerSystem, delta, potential, index)){
+        cout << "Barrel collision" << endl;
+        cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
+        performCollisions(landerSystem, potential, index, inputVelocity);
+        cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
     }
-    if (collided){ // Do surface normal reflection
-        ofVec3f normal = marsMesh.getNormal(potential.points[index]);
-        // Refection vector calculation
-        ofVec3f reflect = inputVelocity - ((2 * inputVelocity.dot(normal)) * normal);
-        for (Particle& p : landerSystem->particles){
-            p.velocity = (reflect + normal).normalize().scale(p.velocity.length() * (2.0/3.0));
+    
+    TreeNode potential2;
+    int index2;
+    
+    delta = 100;
+    // check collisions for falling balls
+    for (Particle& ball : ballSpawner->sys->particles){
+        ParticleSystem* tempSystem = new ParticleSystem();
+        //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
+        tempSystem->add(ball);
+        tempSystem->particles[0].position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
+        if(checkCollisions(tempSystem, delta, potential2, index2)){
+            
+            cout << "Ball collision" << endl;
+            cout << "Ball old velocity " << ball.velocity <<endl;
+            performCollisions(tempSystem, potential2, index2, ball.velocity);
+            cout << "Ball other new velocity" << tempSystem->particles[0].velocity << endl;
+            cout << "Ball new velocity " << ball.velocity <<endl;
+            ball.velocity = tempSystem->particles[0].velocity;
         }
+        //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
     }
+    
+//
+//    if (collided){ // Do surface normal reflection
+//        ofVec3f normal = marsMesh.getNormal(potential.points[index]);
+//        // Refection vector calculation
+//        ofVec3f reflect = inputVelocity - ((2 * inputVelocity.dot(normal)) * normal);
+//        for (Particle& p : landerSystem->particles){
+//            p.velocity = (reflect + normal).normalize().scale(p.velocity.length() * (2.0/3.0));
+//        }
+//    }
 }
 
 // Finds the above ground level of the lander
