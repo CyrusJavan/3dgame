@@ -3,14 +3,17 @@
 
 
 #include "Octree.h"
- 
+#include "vector3.h"
+#include "box.h"
 
 // draw Octree (recursively)
 //
 void Octree::draw(TreeNode & node, int numLevels, int level) {
-	if (level >= numLevels) return;
-	drawBox(node.box);
+	
+    if (level > numLevels) return;
 	level++;
+    drawBox(node.box, level);
+    
 	for (int i = 0; i < node.children.size(); i++) {
 		draw(node.children[i], numLevels, level);
 	}
@@ -19,19 +22,22 @@ void Octree::draw(TreeNode & node, int numLevels, int level) {
 // draw only leaf Nodes
 //
 void Octree::drawLeafNodes(TreeNode & node) {
-    if (node.children.size() == 0) {
-        drawBox(node.box);
-        return;
+    if (node.children.size()>0){
+        for (int i=0; i<node.children.size(); i++){
+            drawLeafNodes(node.children[i]);
+        }
     }
-    for (int i = 0; i < node.children.size(); i++) {
-        drawLeafNodes(node.children[i]);
+    else{
+        if(node.points.size()>0){
+            drawBox(node.box, 0);
+        }
     }
 }
 
 
 //draw a box from a "Box" class  
 //
-void Octree::drawBox(const Box &box) {
+void Octree::drawBox(const Box &box, int level) {
 	Vector3 min = box.parameters[0];
 	Vector3 max = box.parameters[1];
 	Vector3 size = max - min;
@@ -40,6 +46,24 @@ void Octree::drawBox(const Box &box) {
 	float w = size.x();
 	float h = size.y();
 	float d = size.z();
+    if(level%4==0){
+        ofSetColor(255, 0, 0);
+    }
+    else if(level%6==1){
+        ofSetColor(255, 255, 0);
+    }
+    else if(level%6==2){
+        ofSetColor(255, 0, 255);
+    }
+    else if(level%6==3){
+        ofSetColor(0, 255, 255);
+    }
+    else if(level%6==4){
+        ofSetColor(0, 255, 0);
+    }
+    else if(level%6==5){
+        ofSetColor(0, 0, 255);
+    }
 	ofDrawBox(p, w, h, d);
 }
 
@@ -62,16 +86,18 @@ Box Octree::meshBounds(const ofMesh & mesh) {
 		if (v.z > max.z) max.z = v.z;
 		else if (v.z < min.z) min.z = v.z;
 	}
-	cout << "vertices: " << n << endl;
-//	cout << "min: " << min << "max: " << max << endl;
 	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 }
 
 // getMeshPointsInBox:  return an array of indices to points in mesh that are contained 
 //                      inside the Box.  Return count of points found;
 //
-int Octree::getMeshPointsInBox(const ofMesh & mesh, const vector<int>& points,
-	Box & box, vector<int> & pointsRtn)
+int Octree::getMeshPointsInBox(
+                               const ofMesh & mesh,
+                               const vector<int>& points,
+                               Box & box,
+                               vector<int> & pointsRtn
+                               )
 {
     int count = 0;
     for (int i = 0; i < points.size(); i++) {
@@ -79,6 +105,7 @@ int Octree::getMeshPointsInBox(const ofMesh & mesh, const vector<int>& points,
         if (box.inside(Vector3(v.x, v.y, v.z))) {
             count++;
             pointsRtn.push_back(points[i]);
+            //cout << "points[" << i << "] : " << points[i];
         }
     }
     return count;
@@ -118,82 +145,145 @@ void Octree::subDivideBox8(const Box &box, vector<Box> & boxList) {
 	}
 }
 
-void Octree::getIndices(const ofMesh & mesh, vector<int>& points){
-    vector<int> indices(mesh.getNumIndices());
-    // Init indices vector
-    auto& vertices = mesh.getIndices();
-    for (int i = 0; i < indices.size(); i++){
-        indices[i] = vertices[i];
+vector<int> Octree::convertVectorIndicesToInts (vector<ofIndexType> indexVector){
+    vector<int> intVector(indexVector.size());
+    
+    for(int i=0; i < indexVector.size(); i++){
+        intVector[i] = indexVector[i];
     }
-    points = indices;
+//    for(ofIndexType i : indexVector){
+//        intVector.push_back(ofToInt(indexVector[i]));
+//    }
+    return intVector;
 }
 
-void Octree::create(const ofMesh & geo, int numLevels, Box boundingBox) {
-	// initialize octree structure
-	//
-    mesh = geo;
-    root = TreeNode();
-    //root.box = meshBounds(mesh);
+void Octree::create(const ofMesh & geo, int numLevels) {
+    float startTime = ofGetElapsedTimeMillis();
+	
+    root = TreeNode();    
+    //intialize root.box
+    Box boundingBox = meshBounds(geo);
     root.box = boundingBox;
-    cout << "vertices: " << geo.getNumVertices() << endl;
-    getIndices(mesh, root.points);
-    subdivide(mesh, root, numLevels, 0);
+    
+    vector<ofIndexType> marsIndices = geo.getIndices();
+    
+    //intialize root.points
+    vector <int> pointsInsideMesh(marsIndices.size());
+    vector <int> pointsInsideBox;
+    //convert ofIndexType vector to int vector
+    pointsInsideMesh = convertVectorIndicesToInts(marsIndices);
+    int totalPointsInBox = getMeshPointsInBox(geo, pointsInsideMesh, boundingBox, pointsInsideBox);
+    
+    //debug test to check if total points add up to ~210k
+    //    for(int i: pointsInsideBox){
+    //        cout << "points inside 1st bounding box" << i << endl; ;
+    //    }
+    root.points = pointsInsideBox;
+    
+    //call recursive function for numLevels
+    subdivide(geo, root, numLevels, 0);
+    
+    float endTime = ofGetElapsedTimeMillis();
+    cout << endTime - startTime << " milliseconds to build octree." << endl << endl;
+
 }
 
 void Octree::subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int level) {
-    // Recursive base case
-    if (level == numLevels) return;
-    // Create up to 8 children
-    // Don't need to keep a child if it doesn't contain any points
-    vector<Box> boxes;
-    vector<TreeNode> potentialChildren(8);
-    // Create the 8 subdivided boxes
-    subDivideBox8(node.box, boxes);
-    int i;
-    // For each point, find the box it should go in
-    for (int p : node.points){
-        i = 0;
-        for (Box& b : boxes){
-            ofVec3f v = mesh.getVertex(p);
-            if (b.inside(Vector3(-v.x,-v.y,v.z))){ // Point is inside the box
-                potentialChildren[i].points.push_back(p);
-                break;
-            }
-            i++;
-        }
+    level++;
+    
+    
+    if (level > numLevels){
+        return;
     }
-    i = 0;
-    for (Box b : boxes){
-        potentialChildren[i].box = b;
-        if (potentialChildren[i].points.size() != 0){
-            node.children.push_back(potentialChildren[i]);
+    
+    //divide the node.box by 8 and put each box into a boxList
+    vector<Box> boxList;
+    subDivideBox8(node.box, boxList);
+    
+    //create 8 nodes and attach it to that root.children
+    for (int i = 0; i < 8; i++){
+        
+        //create child node & initialize values
+        TreeNode child = TreeNode();
+        
+        //attach subdivided8 box to child.box
+        child.box = boxList[i];
+        
+        //cout << "intializing child " << i << endl;
+        
+        //check if points in node.points are inside child.box
+        getMeshPointsInBox(mesh, node.points, child.box, child.points);
+        
+        if(child.points.size()>0){
+            //cout << child.points.size() << " points added to child " << i << " at level " << level << endl;
         }
-        i++;
-    }
-    // Subdivide each of the children
-    for (TreeNode& child : node.children)
-    {
-        subdivide(mesh, child, numLevels, level + 1);
+        
+        subdivide(mesh, child, numLevels, level);
+        
+        //add child to node.children if it has points w/in mesh
+        if(child.points.size()>0){
+            node.children.push_back(child);
+        }
     }
 }
-// For this to work properly, the leaf nodes of the octree must not have gaps
-// between their boxes, or else a ray could shoot in between the boxes, and thus never
-// intersect with them, even though it should have.
+
 bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
-    // Base case
-    if (node.children.size() == 0){
-        nodeRtn = node;
-        return true;
-    }
-    // Otherwise we need to recurse down
-    bool anyIntersections = false;
-    for (const TreeNode& child : node.children){
-        if (child.box.intersect(ray, -1000, 1000)){
-            anyIntersections = anyIntersections || intersect(ray, child, nodeRtn);
+    
+    //if box is intersected, recurse on method with node.children[i] as node
+    if(node.box.intersect(ray, -50000, 50000)){
+        if(node.children.size()>0){
+            for(int i = 0; i<node.children.size(); i++){
+                //if leaf node is found, break out of loop and return true
+                if (intersect(ray, node.children[i], nodeRtn)){
+                    return true;
+                    break;
+                };
+            }
+        }
+        //base case if leaf node is found
+        else{
+            nodeRtn = node;
+            selectedNode = nodeRtn;
+            //cout << "INTERSECTED: leaf node @ point w/ index " << selectedNode.points[0] << endl;
+            return true;
         }
     }
-    return anyIntersections;
+    //base case if node.box isn't intersected by ray
+    else{
+        return false;
+    }
+    return false;
+
 }
+
+//bool Octree::intersect(const Vector3 & v, const TreeNode & node, TreeNode & nodeRtn) {
+//
+//    //if box is intersected, recurse on method with node.children[i] as node
+//    if(node.box.inside(v)){
+//        if(node.children.size()>0){
+//            for(int i = 0; i<node.children.size(); i++){
+//                //if leaf node is found, break out of loop and return true
+//                if (intersect(v, node.children[i], nodeRtn)){
+//                    return true;
+//                    break;
+//                };
+//            }
+//        }
+//        //base case if leaf node is found
+//        else{
+//            nodeRtn = node;
+//            selectedNode = nodeRtn;
+//            //cout << "INTERSECTED: leaf node @ point w/ index " << selectedNode.points[0] << endl;
+//            return true;
+//        }
+//    }
+//    //base case if node.box isn't intersected by point
+//    else{
+//        return false;
+//    }
+//    return false;
+//
+//}
 
 // Checks if the particle is within delta distance to any of the vertices in the
 // octree
@@ -218,7 +308,7 @@ bool Octree::collides(Particle & p, const float delta, TreeNode & node, TreeNode
             }
         }
         if(min < delta){
-            //cout << ofGetElapsedTimeMillis()<< " Octree:: Collided!" << endl;
+            cout << ofGetElapsedTimeMillis()<< " Octree:: Collided!" << endl;
             return true;
         }
         return false;
@@ -236,4 +326,6 @@ bool Octree::collides(Particle & p, const float delta, TreeNode & node, TreeNode
     }
     return collided;
 }
+
+
 
