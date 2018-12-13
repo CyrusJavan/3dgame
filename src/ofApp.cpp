@@ -46,8 +46,18 @@ void ofApp::setup(){
     themeSong.setLoop(true);
     themeSong.setVolume(.1);
     
-    tree.loadModel("geo/mars-tree.obj");
-    tree.setScaleNormalization(false);
+    
+    showLeafNodes = false;
+    showOctree = true;
+    
+    scene.loadModel("geo/mars-tree-singlemesh.obj");
+    scene.setScaleNormalization(false);
+    for(int i=0; i < scene.getNumMeshes(); i ++){
+        ofMesh sceneMesh = scene.getMesh(i);
+        Octree octree = Octree();
+        octree.create(sceneMesh, 4);
+        octrees.push_back(octree);
+    }
     
     //mars.loadModel("geo/mountain_highPoly_v2.obj");
     //mars.loadModel("geo/mountain_highPoly.obj");
@@ -57,23 +67,25 @@ void ofApp::setup(){
     //mars.loadModel("geo/moon-crater-v1.obj");
     mars.setScaleNormalization(false);
     cout << "# of meshes " << mars.getNumMeshes() << endl;
+    
     marsMesh = mars.getMesh(0);
     
-    //boundingBox = meshBounds(marsMesh);
+    
+//    boundingBox = meshBounds(marsMesh);
 //    boundingBox = Box(Vector3(-mars.getSceneMin().x,
 //                              -mars.getSceneMin().y,
 //                              mars.getSceneMin().z),
 //                      Vector3(-mars.getSceneMax().x,
 //                              -mars.getSceneMax().y,
 //                              mars.getSceneMax().z));
-    boundingBox = Box(Vector3(mars.getSceneMin().x,
-                              mars.getSceneMin().y,
-                              mars.getSceneMin().z),
-                      Vector3(mars.getSceneMax().x,
-                              mars.getSceneMax().y,
-                              mars.getSceneMax().z));
+//    boundingBox = Box(Vector3(mars.getSceneMin().x,
+//                              mars.getSceneMin().y,
+//                              mars.getSceneMin().z),
+//                      Vector3(mars.getSceneMax().x,
+//                              mars.getSceneMax().y,
+//                              mars.getSceneMax().z));
     int start = ofGetElapsedTimeMillis();
-    octree.create(marsMesh, 8, boundingBox);
+    octree.create(marsMesh, 8);
     int end = ofGetElapsedTimeMillis();
     cout << "Octree built in " << end - start << " milliseconds" << endl;
     
@@ -238,7 +250,7 @@ void ofApp::draw(){
         //octree.drawLeafNodes();
         if (bLanderLoaded) {
             lander.drawFaces();
-            tree.drawFaces();
+            //tree.drawFaces();
             //lander.drawVertices();
             //lander.drawWireframe();
         }
@@ -588,7 +600,7 @@ float ofApp::getAGL(){
     Ray ray = Ray(Vector3(landerPos.x, landerPos.y, landerPos.z),
                   Vector3(0, 1, 0));
     TreeNode possible;
-    if (octree.intersect(ray, possible)){
+    if (octree.intersect(ray, octree.root, possible)){
         float sumDist = 0;
         for (int v : possible.points){
             ofVec3f point = marsMesh.getVertex(v);
