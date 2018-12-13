@@ -51,6 +51,7 @@ void ofApp::setup(){
     showOctree = true;
     
     scene.loadModel("geo/mars-tree-singlemesh.obj");
+    scene.setRotation(0, 180, 0, 0, 1);
     scene.setScaleNormalization(false);
     for(int i=0; i < scene.getNumMeshes(); i ++){
         ofMesh sceneMesh = scene.getMesh(i);
@@ -65,6 +66,8 @@ void ofApp::setup(){
     //mars.loadModel("geo/moon-low-v1.obj");
     //mars.loadModel("geo/moon-houdini.obj");
     //mars.loadModel("geo/moon-crater-v1.obj");
+    mars.setRotation(0, 180, 0, 0, 1);
+
     mars.setScaleNormalization(false);
     cout << "# of meshes " << mars.getNumMeshes() << endl;
     
@@ -243,14 +246,14 @@ void ofApp::draw(){
     }
     else {
         ofEnableLighting();              // shaded mode
-        //mars.drawFaces();
+        mars.drawFaces();
         //mars.drawWireframe();
         //ofNoFill();
         //Octree::drawBox(boundingBox);
         //octree.drawLeafNodes();
         if (bLanderLoaded) {
             lander.drawFaces();
-            //tree.drawFaces();
+            scene.drawFaces();
             //lander.drawVertices();
             //lander.drawWireframe();
         }
@@ -266,9 +269,11 @@ void ofApp::draw(){
     // draw falling balls
     ballSpawner->draw();
 
+    ofNoFill();
     // draw octrees
     //draw Octree
     if(showOctree){
+        
         for(int i=0; i<octrees.size(); i++){
             octrees[i].draw(octrees[i].root, 4, 0);
         }
