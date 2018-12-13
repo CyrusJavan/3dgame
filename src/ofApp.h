@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
         void doCollisions();
         bool checkCollisions(ParticleSystem *, float, TreeNode&, int &);
         void performCollisions(ParticleSystem *, TreeNode&, int &, ofVec3f);
+        bool cylinderContains(ofCylinderPrimitive cyl, ofVec3f point);
 		
         Octree octree;
         ofEasyCam cam;
@@ -49,6 +50,9 @@ class ofApp : public ofBaseApp{
         ofMesh marsMesh;
         ofTexture mTex;
         float followCamAngle = 0.0;
+    
+        int score = 0;
+        ofCylinderPrimitive insideBarrel;
     
         float agl;
     
