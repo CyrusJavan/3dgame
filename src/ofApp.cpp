@@ -115,7 +115,7 @@ void ofApp::setup(){
         landerSystem = new ParticleSystem();
         Particle landerParticle;
         landerParticle.lifespan = -1;
-        landerParticle.position = ofVec3f(0,-10,0);
+        landerParticle.position = ofVec3f(0,10,0);
         landerSystem->add(landerParticle);
         
         insideBarrel.set(0.4, 0.4);
@@ -124,14 +124,14 @@ void ofApp::setup(){
         vector<ofVec3f> corners;
         float h = 0.4;
         float w = 0.15;
-        corners.push_back(ofVec3f( w,  -10,      w));
-        corners.push_back(ofVec3f(-w,  -10,      w));
-        corners.push_back(ofVec3f( w,  -10,     -w));
-        corners.push_back(ofVec3f(-w,  -10,     -w));
-        corners.push_back(ofVec3f( w,  -10 - h,  w));
-        corners.push_back(ofVec3f(-w,  -10 - h,  w));
-        corners.push_back(ofVec3f( w,  -10 - h, -w));
-        corners.push_back(ofVec3f(-w,  -10 - h, -w));
+        corners.push_back(ofVec3f( w,  10,      w));
+        corners.push_back(ofVec3f(-w,  10,      w));
+        corners.push_back(ofVec3f( w,  10,     -w));
+        corners.push_back(ofVec3f(-w,  10,     -w));
+        corners.push_back(ofVec3f( w,  10 - h,  w));
+        corners.push_back(ofVec3f(-w,  10 - h,  w));
+        corners.push_back(ofVec3f( w,  10 - h, -w));
+        corners.push_back(ofVec3f(-w,  10 - h, -w));
 
         for (auto corner : corners){
             Particle p;
@@ -191,14 +191,14 @@ void ofApp::setup(){
 void ofApp::update(){
     doCollisions(); // Detect collisions and update velocity accordingly
     landerSystem->update();
-    lander.setPosition(-landerSystem->particles[0].position.x,
-                       -landerSystem->particles[0].position.y,
+    lander.setPosition(landerSystem->particles[0].position.x,
+                       landerSystem->particles[0].position.y,
                        landerSystem->particles[0].position.z);
-    exhaust->setPosition(ofVec3f(-landerSystem->particles[0].position.x,
-                       -landerSystem->particles[0].position.y,
+    exhaust->setPosition(ofVec3f(landerSystem->particles[0].position.x,
+                       landerSystem->particles[0].position.y,
                        landerSystem->particles[0].position.z));
-    insideBarrel.setPosition(-landerSystem->particles[0].position.x,
-                             -landerSystem->particles[0].position.y - 0.5,
+    insideBarrel.setPosition(landerSystem->particles[0].position.x,
+                             landerSystem->particles[0].position.y - 0.5,
                              landerSystem->particles[0].position.z);
     exhaust->update();
     ballSpawner->update();
@@ -338,7 +338,8 @@ void ofApp::keyPressed(int key){
         case 'p':
             break;
         case 'r':
-            cam.reset();
+            //cam.reset();
+            landerSystem->particles[0].position = ofVec3f(0,10,0);
             break;
         case 's':
             //savePicture();
@@ -485,9 +486,14 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 bool ofApp::checkCollisions(ParticleSystem *ps, float delta, TreeNode& potential, int &returnIndex){
     for(int i=0; i<ps->particles.size(); i++){
         Particle p = ps->particles[i];
-        if(octree.collides(p, delta, potential, returnIndex )){
-            return true;
+        for(int i=0; i < octrees.size(); i ++){
+            if(octrees[i].collides(p, delta, potential, returnIndex)){
+                return true;
+            }
         }
+//        if(octree.collides(p, delta, potential, returnIndex )){
+//            return true;
+//        }
     }
 }
 
@@ -540,7 +546,7 @@ void ofApp::doCollisions(){
         ParticleSystem* tempSystem = new ParticleSystem();
         //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
         tempSystem->add(ball);
-        tempSystem->particles[0].position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
+//        tempSystem->particles[0].position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
         if(checkCollisions(tempSystem, delta, potential2, index2)){
             
             //cout << "Ball collision" << endl;
