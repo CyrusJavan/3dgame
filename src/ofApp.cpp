@@ -9,14 +9,14 @@ void ofApp::setup(){
     cam.setDistance(4);
     cam.setNearClip(.1);
     cam.setFov(65.5);
-    cam.setPosition(0, -10, 10);
-    cam.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0));
+    cam.setPosition(0, 10, 10);
+    cam.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     //cam.rotateDeg(180, 0, 0, 1);
     cam.disableMouseInput();
     
     topCam.setNearClip(.1);
     topCam.setFov(65.5);
-    topCam.setPosition(0, -100, 0);
+    topCam.setPosition(0, 100, 0);
     topCam.lookAt(glm::vec3(0, 0, 0));
     
     followCam.setNearClip(.1);
@@ -56,7 +56,7 @@ void ofApp::setup(){
     for(int i=0; i < scene.getNumMeshes(); i ++){
         ofMesh sceneMesh = scene.getMesh(i);
         Octree octree = Octree();
-        octree.create(sceneMesh, 4);
+        octree.create(sceneMesh, 5);
         octrees.push_back(octree);
     }
     
@@ -108,13 +108,14 @@ void ofApp::setup(){
     if (lander.loadModel("geo/barrel.obj")) {
         lander.setScaleNormalization(false);
         lander.setScale(.3, .3, .3);
+        lander.setRotation(0, 180, 0, 0, 1);
         
         // Lander is represented as a single particle in the system
         // Initially there is just a turbulence force
         landerSystem = new ParticleSystem();
         Particle landerParticle;
         landerParticle.lifespan = -1;
-        landerParticle.position = ofVec3f(0,10,0);
+        landerParticle.position = ofVec3f(0,-10,0);
         landerSystem->add(landerParticle);
         
         insideBarrel.set(0.4, 0.4);
@@ -123,14 +124,14 @@ void ofApp::setup(){
         vector<ofVec3f> corners;
         float h = 0.4;
         float w = 0.15;
-        corners.push_back(ofVec3f( w,  10,      w));
-        corners.push_back(ofVec3f(-w,  10,      w));
-        corners.push_back(ofVec3f( w,  10,     -w));
-        corners.push_back(ofVec3f(-w,  10,     -w));
-        corners.push_back(ofVec3f( w,  10 + h,  w));
-        corners.push_back(ofVec3f(-w,  10 + h,  w));
-        corners.push_back(ofVec3f( w,  10 + h, -w));
-        corners.push_back(ofVec3f(-w,  10 + h, -w));
+        corners.push_back(ofVec3f( w,  -10,      w));
+        corners.push_back(ofVec3f(-w,  -10,      w));
+        corners.push_back(ofVec3f( w,  -10,     -w));
+        corners.push_back(ofVec3f(-w,  -10,     -w));
+        corners.push_back(ofVec3f( w,  -10 - h,  w));
+        corners.push_back(ofVec3f(-w,  -10 - h,  w));
+        corners.push_back(ofVec3f( w,  -10 - h, -w));
+        corners.push_back(ofVec3f(-w,  -10 - h, -w));
 
         for (auto corner : corners){
             Particle p;
@@ -142,7 +143,7 @@ void ofApp::setup(){
         // No turbulence for now, becauase it would break the multi point collision detection
         // landerSystem->addForce(new TurbulenceForce(ofVec3f(-0.1,-0.1,-0.1),
         //                                            ofVec3f( 0.1, 0.1, 0.1)));
-        ofVec3f gravity = ofVec3f(0,-.1,0);
+        ofVec3f gravity = ofVec3f(0,.1,0);
         landerSystem->addForce(new GravityForce(gravity));
         // thrust force will be updated by keyPressed
         // thrust force is responsible for moving the lander
@@ -155,12 +156,12 @@ void ofApp::setup(){
         exhaust->setLifespan(.3);
         exhaust->setParticleRadius(.01);
         exhaust->setRate(20);
-        exhaust->setVelocity(ofVec3f(0,-1,0));
+        exhaust->setVelocity(ofVec3f(0,1,0));
         bLanderLoaded = true;
         
         //load the falling balls from the sky
         ParticleSystem* ballSystem = new ParticleSystem();
-        ballSystem->addForce(new GravityForce(ofVec3f(0,1,0)));
+        ballSystem->addForce(new GravityForce(ofVec3f(0,-1,0)));
         ballSpawner = new ParticleEmitter(ballSystem);
         ballSpawner->init();
         ballSpawner->type = PlaneEmitter; // Emit randomly from a plane, MUST SET WIDTH AND HEIGHT
@@ -170,8 +171,8 @@ void ofApp::setup(){
         ballSpawner->setLifespan(500);
         ballSpawner->setParticleRadius(.1);
         ballSpawner->setRate(1);
-        ballSpawner->setVelocity(ofVec3f(0,1,0));
-        ballSpawner->setPosition(ofVec3f(0,-10,0));
+        ballSpawner->setVelocity(ofVec3f(0,-1,0));
+        ballSpawner->setPosition(ofVec3f(0,10,0));
         vector<ofTexture> fruitTextures = {orangeTexture, appleTexture, peachTexture, limeTexture, plumTexture};
         ballSpawner->setTextures(fruitTextures);
         //ballSpawner->setOneShot(true);
@@ -207,7 +208,7 @@ void ofApp::update(){
     followCam.setPosition(ofVec3f(landerPos.x + 2 * sin(followCamAngle),
                                   landerPos.y - 1,
                                   landerPos.z + 2 * cos(followCamAngle)));
-    followCam.lookAt(lander.getPosition(), ofVec3f(0,-1,0));
+    followCam.lookAt(lander.getPosition(), ofVec3f(0,1,0));
     
     // Prevent exhaust particles from coming out the top of the lander
     if (landerSystem->particles[0].velocity.y < 0){
@@ -218,7 +219,7 @@ void ofApp::update(){
     
     // Update the above ground level
     agl = getAGL();
-    cam.lookAt(lander.getPosition(),ofVec3f(0,-1,0));
+    cam.lookAt(lander.getPosition(),ofVec3f(0,1,0));
     
     
 }
@@ -381,7 +382,7 @@ void ofApp::keyPressed(int key){
             if (bAltKeyDown)
                 thrust->add(ofVec3f(0,0,-1) * speed);
             else
-                thrust->add(ofVec3f(0,1,0) * speed);
+                thrust->add(ofVec3f(0,-1,0) * speed);
             exhaust->start();
             if (!rocketSound.isPlaying()){
                 rocketSound.play();
@@ -391,7 +392,7 @@ void ofApp::keyPressed(int key){
             if (bAltKeyDown)
                 thrust->add(ofVec3f(0,0,1) * speed);
             else
-                thrust->add(ofVec3f(0,-1,0) * speed);
+                thrust->add(ofVec3f(0,1,0) * speed);
             exhaust->start();
             if (!rocketSound.isPlaying()){
                 rocketSound.play();
@@ -533,7 +534,7 @@ void ofApp::doCollisions(){
     TreeNode potential2;
     int index2;
     
-    delta = 100;
+    //delta = 100;
     // check collisions for falling balls
     for (Particle& ball : ballSpawner->sys->particles){
         ParticleSystem* tempSystem = new ParticleSystem();
@@ -560,7 +561,7 @@ void ofApp::doCollisions(){
         ofVec3f ballPos = ofVec3f((*ball).position.x,(*ball).position.y,(*ball).position.z);
         
         if (cylinderContains(insideBarrel, ballPos)){
-            cout << "Cylinder Collision!" << endl;
+            //cout << "Cylinder Collision!" << endl;
             score++;
             catchSound.play();
             ball = ballSpawner->sys->particles.erase(ball); // Remove the ball
@@ -586,14 +587,14 @@ void ofApp::doCollisions(){
 
 // Returns whether the cylinder contains the point
 bool ofApp::cylinderContains(ofCylinderPrimitive cyl, ofVec3f point){
-    cout << "point y " << point.y << " cylinder.y " <<cyl.getPosition().y << endl;
+    //cout << "point y " << point.y << " cylinder.y " <<cyl.getPosition().y << endl;
     bool withinHeight = point.y < cyl.getPosition().y && cyl.getPosition().y - cyl.getHeight() < point.y;
-    cout << "WithinHeihgt  "<<withinHeight << endl;
+    //cout << "WithinHeihgt  "<<withinHeight << endl;
     
     ofVec2f pointXZ(point.x,point.z);
     ofVec2f cylXZ(cyl.getPosition().x,cyl.getPosition().z);
     bool withinRadius = pointXZ.distance(cylXZ) < cyl.getRadius();
-    cout << "WithinRad  "<<withinRadius << endl;
+    //cout << "WithinRad  "<<withinRadius << endl;
     return  withinHeight && withinRadius;
 }
 
