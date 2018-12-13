@@ -48,7 +48,7 @@ class ofApp : public ofBaseApp{
         ofEasyCam followCam;
         Box boundingBox;
         ofMesh marsMesh;
-        ofTexture mTex;
+        ofTexture mTex, orangeTexture, appleTexture, peachTexture, limeTexture, plumTexture;
         float followCamAngle = 0.0;
         ofSoundPlayer rocketSound, catchSound, themeSong;
     

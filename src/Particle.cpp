@@ -15,13 +15,29 @@ Particle::Particle() {
 	damping = .99;
 	mass = 1;
 	color = ofColor::aquamarine;
+    hasTexture = false;
+}
+
+void Particle::setTexture(ofTexture& t){
+    tex = t;
+    hasTexture = true;
 }
 
 void Particle::draw() {
 	//ofSetColor(color);
 //	ofSetColor(ofMap(age(), 0, lifespan, 255, 10), 0, 0);
     ofSetColor(255);
-	ofDrawSphere(position, radius);
+    if (hasTexture){
+        ofPushMatrix();
+        tex.bind();
+        ofDrawSphere(position, radius);
+        tex.unbind();
+        ofPopMatrix();
+    }
+    else{
+        ofDrawSphere(position, radius);
+    }
+	
 }
 
 // write your own integrator here.. (hint: it's only 3 lines of code)

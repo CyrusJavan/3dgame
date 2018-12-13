@@ -56,6 +56,13 @@ void ParticleEmitter::draw() {
 		case DirectionalEmitter:
 			ofDrawSphere(position, radius/10);  // just draw a small sphere for point emitters 
 			break;
+        case PlaneEmitter:
+                ofPushMatrix();
+                ofTranslate(position.x,position.y, position.z);
+                ofRotateDeg(-90,1,0,0);
+                ofDrawPlane(width, length);
+                ofPopMatrix();
+            break;
 		case SphereEmitter:
 		case RadialEmitter:
         case DiscEmitter:
@@ -119,6 +126,18 @@ void ParticleEmitter::spawn(float time) {
 	// based on emitter type
 	//
 	switch (type) {
+    case PlaneEmitter:
+        {
+            if (hasTexture){
+                particle.setTexture(textures[(int) (ofRandom(textures.size()))]);
+            }
+            particle.velocity = velocity;
+            particle.position.set(ofVec3f(
+                                          position.x + ofRandom(width),
+                                          position.y,
+                                          position.z + ofRandom(length)));
+        }
+        break;
 	case RadialEmitter:
 	  {
 		ofVec3f dir = ofVec3f(ofRandom(-1, 1), ofRandom(-1, 1), ofRandom(-1, 1));
@@ -141,8 +160,10 @@ void ParticleEmitter::spawn(float time) {
 	case DirectionalEmitter:
 		particle.velocity = velocity;
 		particle.position.set(position);
+            if (hasTexture){
+                particle.setTexture(textures[(int) (ofRandom(textures.size()))]);
+            }
 		break;
-	
 	}
 
 	// other particle attributes
