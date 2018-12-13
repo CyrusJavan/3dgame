@@ -254,7 +254,22 @@ void ofApp::draw(){
     // draw falling balls
     ballSpawner->draw();
 
+    // draw octrees
+    //draw Octree
+    if(showOctree){
+        for(int i=0; i<octrees.size(); i++){
+            octrees[i].draw(octrees[i].root, 4, 0);
+        }
+        //octree.draw(octree.root, 10, 0);
+    }
     
+    //draw leaf nodes
+    if(!showOctree && showLeafNodes){
+        for(int i=0; i<octrees.size(); i++){
+            octrees[i].drawLeafNodes(octrees[i].root);
+        }
+        //        octree.drawLeafNodes(octree.root);
+    }
     
     // draw the collision points for debugging
     for (auto p : landerSystem->particles){
@@ -283,6 +298,12 @@ void ofApp::draw(){
 void ofApp::keyPressed(int key){
     float speed = .3;
     switch (key) {
+        case 'l':
+            showLeafNodes = !showLeafNodes;
+            break;
+        case 'o':
+            showOctree = !showOctree;
+            break;
         case 'C':
         case 'c':
             if (cam.getMouseInputEnabled()) cam.disableMouseInput();

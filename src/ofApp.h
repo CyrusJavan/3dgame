@@ -35,6 +35,9 @@ class ofApp : public ofBaseApp{
         bool cylinderContains(ofCylinderPrimitive cyl, ofVec3f point);
 		
         Octree octree;
+        vector<Octree> octrees;
+        bool showOctree;
+        bool showLeafNodes;
         ofEasyCam cam;
         ofxAssimpModelLoader mars, lander, tree;
         ParticleSystem* landerSystem; // Use a particle system with one particle for the lander
