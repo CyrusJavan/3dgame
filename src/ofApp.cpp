@@ -6,11 +6,12 @@ void ofApp::setup(){
     bCtrlKeyDown = false;
     bLanderLoaded = false;
     
-    cam.setDistance(10);
+    cam.setDistance(4);
     cam.setNearClip(.1);
     cam.setFov(65.5);
-    cam.setPosition(0, -10, 25);
-    cam.rotateDeg(180, 0, 0, 1);
+    cam.setPosition(0, -10, 10);
+    cam.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0));
+    //cam.rotateDeg(180, 0, 0, 1);
     cam.disableMouseInput();
     
     topCam.setNearClip(.1);
@@ -38,17 +39,35 @@ void ofApp::setup(){
     //
     initLightingAndMaterials();
     
+    //mars.loadModel("geo/mountain_highPoly_v2.obj");
+    //mars.loadModel("geo/mountain_highPoly.obj");
     mars.loadModel("geo/mars-low-v2.obj");
     //mars.loadModel("geo/moon-low-v1.obj");
     //mars.loadModel("geo/moon-houdini.obj");
     //mars.loadModel("geo/moon-crater-v1.obj");
     mars.setScaleNormalization(false);
+    cout << "# of meshes " << mars.getNumMeshes() << endl;
     marsMesh = mars.getMesh(0);
-    boundingBox = meshBounds(marsMesh);
+    
+    //boundingBox = meshBounds(marsMesh);
+//    boundingBox = Box(Vector3(-mars.getSceneMin().x,
+//                              -mars.getSceneMin().y,
+//                              mars.getSceneMin().z),
+//                      Vector3(-mars.getSceneMax().x,
+//                              -mars.getSceneMax().y,
+//                              mars.getSceneMax().z));
+    boundingBox = Box(Vector3(mars.getSceneMin().x,
+                              mars.getSceneMin().y,
+                              mars.getSceneMin().z),
+                      Vector3(mars.getSceneMax().x,
+                              mars.getSceneMax().y,
+                              mars.getSceneMax().z));
     int start = ofGetElapsedTimeMillis();
-    octree.create(marsMesh, 8);
+    octree.create(marsMesh, 10, boundingBox);
     int end = ofGetElapsedTimeMillis();
     cout << "Octree built in " << end - start << " milliseconds" << endl;
+    
+    
     
     ofDisableArbTex();
     //ofLoadImage(mTex, "images/glow.png");
@@ -67,6 +86,8 @@ void ofApp::setup(){
         landerParticle.lifespan = -1;
         landerParticle.position = ofVec3f(0,10,0);
         landerSystem->add(landerParticle);
+        
+        insideBarrel.set(0.4, 0.4);
 
         // Maunually creating collision points
         vector<ofVec3f> corners;
@@ -91,7 +112,8 @@ void ofApp::setup(){
         // No turbulence for now, becauase it would break the multi point collision detection
         // landerSystem->addForce(new TurbulenceForce(ofVec3f(-0.1,-0.1,-0.1),
         //                                            ofVec3f( 0.1, 0.1, 0.1)));
-        landerSystem->addForce(new GravityForce(ofVec3f(0,-1,0)));
+        ofVec3f gravity = ofVec3f(0,-.1,0);
+        landerSystem->addForce(new GravityForce(gravity));
         // thrust force will be updated by keyPressed
         // thrust force is responsible for moving the lander
         thrust = new ThrusterForce(ofVec3f(0,0,0));
@@ -116,8 +138,8 @@ void ofApp::setup(){
         ballSpawner->setLifespan(500);
         ballSpawner->setParticleRadius(.1);
         ballSpawner->setRate(1);
-        ballSpawner->setVelocity(ofVec3f(0,10,0));
-        ballSpawner->setPosition(ofVec3f(1,-10,5));
+        ballSpawner->setVelocity(ofVec3f(0,1,0));
+        ballSpawner->setPosition(ofVec3f(0,-10,0));
         //ballSpawner->setOneShot(true);
         ballSpawner->start();
         //ballSpawner->setOneShot(true);
@@ -139,6 +161,9 @@ void ofApp::update(){
     exhaust->setPosition(ofVec3f(-landerSystem->particles[0].position.x,
                        -landerSystem->particles[0].position.y,
                        landerSystem->particles[0].position.z));
+    insideBarrel.setPosition(-landerSystem->particles[0].position.x,
+                             -landerSystem->particles[0].position.y - 0.5,
+                             landerSystem->particles[0].position.z);
     exhaust->update();
     ballSpawner->update();
     // Make the follow cam rotate around the lander
@@ -158,6 +183,7 @@ void ofApp::update(){
     
     // Update the above ground level
     agl = getAGL();
+    cam.lookAt(lander.getPosition(),ofVec3f(0,-1,0));
 }
 
 //--------------------------------------------------------------
@@ -184,8 +210,14 @@ void ofApp::draw(){
     else {
         ofEnableLighting();              // shaded mode
         mars.drawFaces();
+        //mars.drawWireframe();
+        //ofNoFill();
+        //Octree::drawBox(boundingBox);
+        //octree.drawLeafNodes();
         if (bLanderLoaded) {
             lander.drawFaces();
+            //lander.drawVertices();
+            //lander.drawWireframe();
         }
     }
     
@@ -205,6 +237,8 @@ void ofApp::draw(){
         ofDrawSphere(-p.position.x, -p.position.y, p.position.z, 0.01);
     }
     
+    insideBarrel.draw();
+    //barrelTree.drawLeafNodes();
     ofPopMatrix();
     theCam->end();
     
@@ -216,6 +250,8 @@ void ofApp::draw(){
     ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
     str = "AGL: " + std::to_string(agl);
     ofDrawBitmapString(str, ofGetWindowWidth() - 170, 30);
+    str = "Score: " + std::to_string(score);
+    ofDrawBitmapString(str, ofGetWindowWidth() - 170, 45);
 }
 
 //--------------------------------------------------------------
@@ -392,7 +428,7 @@ void ofApp::performCollisions(ParticleSystem *ps, TreeNode& potential, int & ind
 }
 
 // Detect collisons between the lander and the surface
-// Author: Cyrus
+// Author: Cyrus & Vivian
 void ofApp::doCollisions(){
     // Check if collided
     //bool collided = false;
@@ -430,16 +466,35 @@ void ofApp::doCollisions(){
         tempSystem->particles[0].position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
         if(checkCollisions(tempSystem, delta, potential2, index2)){
             
-            cout << "Ball collision" << endl;
-            cout << "Ball old velocity " << ball.velocity <<endl;
+            //cout << "Ball collision" << endl;
+            //cout << "Ball old velocity " << ball.velocity <<endl;
             performCollisions(tempSystem, potential2, index2, ball.velocity);
-            cout << "Ball other new velocity" << tempSystem->particles[0].velocity << endl;
-            cout << "Ball new velocity " << ball.velocity <<endl;
+            //cout << "Ball other new velocity" << tempSystem->particles[0].velocity << endl;
+            //cout << "Ball new velocity " << ball.velocity <<endl;
             ball.velocity = tempSystem->particles[0].velocity;
         }
         //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
     }
     
+    // Check if a ball is inside the barrel, if it is, remove the ball and increment the score
+    // A Ball is inside the barrell if it collides with any of the landerSystem Particles
+    // TODO: Make sure ball cannot enter the barrel from the sides/bottom only the open top
+    float minDistance = 5; // If a ball is within this distance to a landerSystem particle it is a collision
+    for (auto ball = ballSpawner->sys->particles.begin(); ball != ballSpawner->sys->particles.end(); ){
+        ofVec3f ballPos = ofVec3f((*ball).position.x,(*ball).position.y,(*ball).position.z);
+        
+        if (cylinderContains(insideBarrel, ballPos)){
+            cout << "Cylinder Collision!" << endl;
+            score++;
+            ball = ballSpawner->sys->particles.erase(ball); // Remove the ball
+        }
+        else{
+            ++ball;
+        }
+    }
+//    bool result = cylinderContains(insideBarrel, ofVec3f(-landerSystem->particles[0].position.x,
+//                                            -landerSystem->particles[0].position.y,
+//                                            landerSystem->particles[0].position.z));
 //
 //    if (collided){ // Do surface normal reflection
 //        ofVec3f normal = marsMesh.getNormal(potential.points[index]);
@@ -449,6 +504,20 @@ void ofApp::doCollisions(){
 //            p.velocity = (reflect + normal).normalize().scale(p.velocity.length() * (2.0/3.0));
 //        }
 //    }
+}
+
+
+// Returns whether the cylinder contains the point
+bool ofApp::cylinderContains(ofCylinderPrimitive cyl, ofVec3f point){
+    cout << "point y " << point.y << " cylinder.y " <<cyl.getPosition().y << endl;
+    bool withinHeight = point.y < cyl.getPosition().y && cyl.getPosition().y - cyl.getHeight() < point.y;
+    cout << "WithinHeihgt  "<<withinHeight << endl;
+    
+    ofVec2f pointXZ(point.x,point.z);
+    ofVec2f cylXZ(cyl.getPosition().x,cyl.getPosition().z);
+    bool withinRadius = pointXZ.distance(cylXZ) < cyl.getRadius();
+    cout << "WithinRad  "<<withinRadius << endl;
+    return  withinHeight && withinRadius;
 }
 
 // Finds the above ground level of the lander
