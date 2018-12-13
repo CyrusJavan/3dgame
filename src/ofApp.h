@@ -43,7 +43,8 @@ class ofApp : public ofBaseApp{
         ParticleSystem* landerSystem; // Use a particle system with one particle for the lander
         ThrusterForce* thrust;
         ParticleEmitter* exhaust;
-        ParticleEmitter* ballSpawner;
+        //ParticleEmitter* ballSpawner;
+        vector<ParticleEmitter*> ballSpawners;
         ofLight light;
         ofImage backgroundImage;
         ofCamera *theCam = NULL;

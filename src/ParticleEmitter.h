@@ -36,6 +36,7 @@ public:
 	bool oneShot;
 	bool fired;
 	bool randomLife;
+    bool drawEmitter = true;
 	ofVec3f lifeMinMax;
 	ofVec3f velocity;
 	float lifespan;     // sec

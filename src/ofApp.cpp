@@ -107,7 +107,7 @@ void ofApp::setup(){
     //
     if (lander.loadModel("geo/barrel.obj")) {
         lander.setScaleNormalization(false);
-        lander.setScale(.3, .3, .3);
+        lander.setScale(.5, .5, .5);
         lander.setRotation(0, 180, 0, 0, 1);
         
         // Lander is represented as a single particle in the system
@@ -122,8 +122,8 @@ void ofApp::setup(){
 
         // Maunually creating collision points
         vector<ofVec3f> corners;
-        float h = .9;
-        float w = 0.35;
+        float h = 1.6;
+        float w = 0.55;
         corners.push_back(ofVec3f( w,  10,      w));
         corners.push_back(ofVec3f(-w,  10,      w));
         corners.push_back(ofVec3f( w,  10,     -w));
@@ -159,26 +159,50 @@ void ofApp::setup(){
         exhaust->setVelocity(ofVec3f(0,1,0));
         bLanderLoaded = true;
         
-        //load the falling balls from the sky
-        ParticleSystem* ballSystem = new ParticleSystem();
-        ballSystem->addForce(new GravityForce(ofVec3f(0,-1,0)));
-        ballSpawner = new ParticleEmitter(ballSystem);
-        ballSpawner->init();
-        ballSpawner->type = PlaneEmitter; // Emit randomly from a plane, MUST SET WIDTH AND HEIGHT
-        ballSpawner->width = 3;
-        ballSpawner->length = 3;
-        //ballSpawner->setGroupSize(50);
-        ballSpawner->setLifespan(500);
-        ballSpawner->setParticleRadius(.1);
-        ballSpawner->setRate(1);
-        ballSpawner->setVelocity(ofVec3f(0,-1,0));
-        ballSpawner->setPosition(ofVec3f(0,10,0));
-        vector<ofTexture> fruitTextures = {orangeTexture, appleTexture, peachTexture, limeTexture, plumTexture};
-        ballSpawner->setTextures(fruitTextures);
-        //ballSpawner->setOneShot(true);
-        ballSpawner->start();
-        //ballSpawner->setOneShot(true);
-        //ballSpawner->spawn(ofGetElapsedTimeMillis());
+//        ofVec3f spawnerLocations[] =
+//        {   ofVec3f(3.6,20,1.7),
+//            ofVec3f(3.0,25,-3.4),
+//            ofVec3f(0.1,20,7.3),
+//            ofVec3f(-3.5,30,6.3),
+//            ofVec3f(-7.3,30,3),
+//            ofVec3f(-0.9,20,12.2),
+//            ofVec3f(-9.3,40,13.5),
+//        };
+        
+        ofVec3f spawnerLocations[] =
+        {   ofVec3f(-9.86352, 26.6276, -7.06939),
+            ofVec3f(-3.34461, 29.3954, -11.9546),
+            ofVec3f( 0.464731, 24.1474, -5.56162),
+            ofVec3f(4.59306, 21.3098, 15.3218),
+            ofVec3f(-0.124639, 23.3434, 13.7385),
+            ofVec3f( -11.4664, 27.666, 4.43373),
+            ofVec3f(-2.12983, 16.343, 2.99508),
+        };
+        
+        for (int i = 0; i < 7; i++){
+            //load the falling balls from the sky
+            ParticleSystem* ballSystem = new ParticleSystem();
+            ballSystem->addForce(new GravityForce(ofVec3f(0,-1,0)));
+            ParticleEmitter* ballSpawner = new ParticleEmitter(ballSystem);
+            ballSpawner->init();
+            ballSpawner->type = PlaneEmitter; // Emit randomly from a plane, MUST SET WIDTH AND HEIGHT
+            ballSpawner->width = 2;
+            ballSpawner->length = 2;
+            //ballSpawner->setGroupSize(50);
+            ballSpawner->setLifespan(20);
+            ballSpawner->setParticleRadius(.2);
+            ballSpawner->setRate(1);
+            ballSpawner->drawEmitter = false;
+            ballSpawner->setVelocity(ofVec3f(0,-1,0));
+            ballSpawner->setPosition(spawnerLocations[i]);
+            vector<ofTexture> fruitTextures = {orangeTexture, appleTexture, peachTexture, limeTexture, plumTexture};
+            ballSpawner->setTextures(fruitTextures);
+            //ballSpawner->setOneShot(true);
+            ballSpawner->start();
+            ballSpawners.push_back(ballSpawner);
+            //ballSpawner->setOneShot(true);
+            //ballSpawner->spawn(ofGetElapsedTimeMillis());
+        }
     }
     else {
         cout << "Error: Can't load model" << "geo/lander.obj" << endl;
@@ -201,13 +225,16 @@ void ofApp::update(){
                              landerSystem->particles[0].position.y + 0.5,
                              landerSystem->particles[0].position.z);
     exhaust->update();
-    ballSpawner->update();
+    for (auto bs : ballSpawners){
+        bs->update();
+    }
+    
     // Make the follow cam rotate around the lander
     followCamAngle += 0.005;
     ofVec3f landerPos = lander.getPosition();
-    followCam.setPosition(ofVec3f(landerPos.x + 2 * sin(followCamAngle),
-                                  landerPos.y - 1,
-                                  landerPos.z + 2 * cos(followCamAngle)));
+    followCam.setPosition(ofVec3f(landerPos.x + 3 * sin(followCamAngle),
+                                  landerPos.y + 2,
+                                  landerPos.z + 3 * cos(followCamAngle)));
     followCam.lookAt(lander.getPosition(), ofVec3f(0,1,0));
     
     // Prevent exhaust particles from coming out the top of the lander
@@ -267,8 +294,11 @@ void ofApp::draw(){
     mTex.unbind();
     ofPopMatrix();
     
+    ofFill();
     // draw falling balls
-    ballSpawner->draw();
+    for (auto bs : ballSpawners){
+        bs->draw();
+    }
 
     ofNoFill();
     // draw octrees
@@ -531,10 +561,10 @@ void ofApp::doCollisions(){
     // check collisions for space craft
     
     if(checkCollisions(landerSystem, delta, potential, index)){
-        cout << "Barrel collision" << endl;
-        cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
+        //cout << "Barrel collision" << endl;
+        //cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
         performCollisions(landerSystem, potential, index, inputVelocity);
-        cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
+        //cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
     }
     
     TreeNode potential2;
@@ -542,38 +572,42 @@ void ofApp::doCollisions(){
     
     //delta = 100;
     // check collisions for falling balls
-    for (Particle& ball : ballSpawner->sys->particles){
-        ParticleSystem* tempSystem = new ParticleSystem();
-        //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
-        tempSystem->add(ball);
-//        tempSystem->particles[0].position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
-        if(checkCollisions(tempSystem, delta, potential2, index2)){
-            
-            //cout << "Ball collision" << endl;
-            //cout << "Ball old velocity " << ball.velocity <<endl;
-            performCollisions(tempSystem, potential2, index2, ball.velocity);
-            //cout << "Ball other new velocity" << tempSystem->particles[0].velocity << endl;
-            //cout << "Ball new velocity " << ball.velocity <<endl;
-            ball.velocity = tempSystem->particles[0].velocity;
+    for (auto bs : ballSpawners){
+        for (Particle& ball : bs->sys->particles){
+            ParticleSystem* tempSystem = new ParticleSystem();
+            //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
+            tempSystem->add(ball);
+    //        tempSystem->particles[0].position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
+            if(checkCollisions(tempSystem, delta, potential2, index2)){
+                
+                //cout << "Ball collision" << endl;
+                //cout << "Ball old velocity " << ball.velocity <<endl;
+                performCollisions(tempSystem, potential2, index2, ball.velocity);
+                //cout << "Ball other new velocity" << tempSystem->particles[0].velocity << endl;
+                //cout << "Ball new velocity " << ball.velocity <<endl;
+                ball.velocity = tempSystem->particles[0].velocity;
+            }
+            //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
         }
-        //ball.position = ofVec3f(-ball.position.x, -ball.position.y, ball.position.z);
     }
     
     // Check if a ball is inside the barrel, if it is, remove the ball and increment the score
     // A Ball is inside the barrell if it collides with any of the landerSystem Particles
     // TODO: Make sure ball cannot enter the barrel from the sides/bottom only the open top
-    float minDistance = 5; // If a ball is within this distance to a landerSystem particle it is a collision
-    for (auto ball = ballSpawner->sys->particles.begin(); ball != ballSpawner->sys->particles.end(); ){
-        ofVec3f ballPos = ofVec3f((*ball).position.x,(*ball).position.y,(*ball).position.z);
-        
-        if (cylinderContains(insideBarrel, ballPos)){
-            //cout << "Cylinder Collision!" << endl;
-            score++;
-            catchSound.play();
-            ball = ballSpawner->sys->particles.erase(ball); // Remove the ball
-        }
-        else{
-            ++ball;
+    for (auto bs : ballSpawners){
+        float minDistance = 5; // If a ball is within this distance to a landerSystem particle it is a collision
+        for (auto ball = bs->sys->particles.begin(); ball != bs->sys->particles.end(); ){
+            ofVec3f ballPos = ofVec3f((*ball).position.x,(*ball).position.y,(*ball).position.z);
+            
+            if (cylinderContains(insideBarrel, ballPos)){
+                //cout << "Cylinder Collision!" << endl;
+                score++;
+                catchSound.play();
+                ball = bs->sys->particles.erase(ball); // Remove the ball
+            }
+            else{
+                ++ball;
+            }
         }
     }
 //    bool result = cylinderContains(insideBarrel, ofVec3f(-landerSystem->particles[0].position.x,
