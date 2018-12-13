@@ -107,7 +107,7 @@ void ofApp::setup(){
     //
     if (lander.loadModel("geo/barrel.obj")) {
         lander.setScaleNormalization(false);
-        lander.setScale(.5, .5, .5);
+        //lander.setScale(.9, .5, .5);
         lander.setRotation(0, 180, 0, 0, 1);
         
         // Lander is represented as a single particle in the system
@@ -118,12 +118,12 @@ void ofApp::setup(){
         landerParticle.position = ofVec3f(0,10,0);
         landerSystem->add(landerParticle);
         
-        insideBarrel.set(0.4, 0.4);
+        insideBarrel.set(1.3, 2.5);
 
         // Maunually creating collision points
         vector<ofVec3f> corners;
-        float h = 1.6;
-        float w = 0.55;
+        float h = 3;
+        float w = 0.85;
         corners.push_back(ofVec3f( w,  10,      w));
         corners.push_back(ofVec3f(-w,  10,      w));
         corners.push_back(ofVec3f( w,  10,     -w));
@@ -190,7 +190,7 @@ void ofApp::setup(){
             ballSpawner->length = 2;
             //ballSpawner->setGroupSize(50);
             ballSpawner->setLifespan(20);
-            ballSpawner->setParticleRadius(.2);
+            ballSpawner->setParticleRadius(.3);
             ballSpawner->setRate(1);
             ballSpawner->drawEmitter = false;
             ballSpawner->setVelocity(ofVec3f(0,-1,0));
@@ -222,7 +222,7 @@ void ofApp::update(){
                        landerSystem->particles[0].position.y,
                        landerSystem->particles[0].position.z));
     insideBarrel.setPosition(landerSystem->particles[0].position.x,
-                             landerSystem->particles[0].position.y + 0.5,
+                             landerSystem->particles[0].position.y + 1.4,
                              landerSystem->particles[0].position.z);
     exhaust->update();
     for (auto bs : ballSpawners){
@@ -232,9 +232,9 @@ void ofApp::update(){
     // Make the follow cam rotate around the lander
     followCamAngle += 0.005;
     ofVec3f landerPos = lander.getPosition();
-    followCam.setPosition(ofVec3f(landerPos.x + 3 * sin(followCamAngle),
-                                  landerPos.y + 2,
-                                  landerPos.z + 3 * cos(followCamAngle)));
+    followCam.setPosition(ofVec3f(landerPos.x + 8 * sin(followCamAngle),
+                                  landerPos.y + 8,
+                                  landerPos.z + 8 * cos(followCamAngle)));
     followCam.lookAt(lander.getPosition(), ofVec3f(0,1,0));
     
     // Prevent exhaust particles from coming out the top of the lander
