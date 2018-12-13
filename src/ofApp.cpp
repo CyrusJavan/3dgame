@@ -122,16 +122,16 @@ void ofApp::setup(){
 
         // Maunually creating collision points
         vector<ofVec3f> corners;
-        float h = 0.4;
-        float w = 0.15;
+        float h = .9;
+        float w = 0.35;
         corners.push_back(ofVec3f( w,  10,      w));
         corners.push_back(ofVec3f(-w,  10,      w));
         corners.push_back(ofVec3f( w,  10,     -w));
         corners.push_back(ofVec3f(-w,  10,     -w));
-        corners.push_back(ofVec3f( w,  10 - h,  w));
-        corners.push_back(ofVec3f(-w,  10 - h,  w));
-        corners.push_back(ofVec3f( w,  10 - h, -w));
-        corners.push_back(ofVec3f(-w,  10 - h, -w));
+        corners.push_back(ofVec3f( w,  10 + h,  w));
+        corners.push_back(ofVec3f(-w,  10 + h,  w));
+        corners.push_back(ofVec3f( w,  10 + h, -w));
+        corners.push_back(ofVec3f(-w,  10 + h, -w));
 
         for (auto corner : corners){
             Particle p;
