@@ -39,7 +39,7 @@ class ofApp : public ofBaseApp{
         bool showOctree;
         bool showLeafNodes;
         ofEasyCam cam;
-        ofxAssimpModelLoader mars, lander, tree;
+        ofxAssimpModelLoader mars, lander, scene;
         ParticleSystem* landerSystem; // Use a particle system with one particle for the lander
         ThrusterForce* thrust;
         ParticleEmitter* exhaust;
