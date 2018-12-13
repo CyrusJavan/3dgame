@@ -39,6 +39,13 @@ void ofApp::setup(){
     //
     initLightingAndMaterials();
     
+    // setup sounds
+    rocketSound.load("sounds/rocket_thruster.wav");
+    catchSound.load("sounds/baseball_pitch.wav");
+    themeSong.load("sounds/mario_theme.mp3");
+    themeSong.setLoop(true);
+    themeSong.setVolume(.1);
+    
     tree.loadModel("geo/mars-tree.obj");
     tree.setScaleNormalization(false);
     
@@ -152,6 +159,7 @@ void ofApp::setup(){
         cout << "Error: Can't load model" << "geo/lander.obj" << endl;
         ofExit(0);
     }
+    themeSong.play();
 }
 
 //--------------------------------------------------------------
@@ -187,6 +195,8 @@ void ofApp::update(){
     // Update the above ground level
     agl = getAGL();
     cam.lookAt(lander.getPosition(),ofVec3f(0,-1,0));
+    
+    
 }
 
 //--------------------------------------------------------------
@@ -324,6 +334,9 @@ void ofApp::keyPressed(int key){
             else
                 thrust->add(ofVec3f(0,1,0) * speed);
             exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
             break;
         case OF_KEY_DOWN:
             if (bAltKeyDown)
@@ -331,14 +344,23 @@ void ofApp::keyPressed(int key){
             else
                 thrust->add(ofVec3f(0,-1,0) * speed);
             exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
             break;
         case OF_KEY_LEFT:
             thrust->add(ofVec3f(-1,0,0) * speed);
             exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
             break;
         case OF_KEY_RIGHT:
             thrust->add(ofVec3f(1,0,0) * speed);
             exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
             break;
         default:
             break;
@@ -358,6 +380,7 @@ void ofApp::keyReleased(int key){
         case OF_KEY_SHIFT:
             break;
         default:
+            rocketSound.stop();
             thrust->set(ofVec3f(0,0,0));
             exhaust->stop();
             break;
@@ -490,6 +513,7 @@ void ofApp::doCollisions(){
         if (cylinderContains(insideBarrel, ballPos)){
             cout << "Cylinder Collision!" << endl;
             score++;
+            catchSound.play();
             ball = ballSpawner->sys->particles.erase(ball); // Remove the ball
         }
         else{

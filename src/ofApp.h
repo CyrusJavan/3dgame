@@ -50,6 +50,7 @@ class ofApp : public ofBaseApp{
         ofMesh marsMesh;
         ofTexture mTex;
         float followCamAngle = 0.0;
+        ofSoundPlayer rocketSound, catchSound, themeSong;
     
         int score = 0;
         ofCylinderPrimitive insideBarrel;
