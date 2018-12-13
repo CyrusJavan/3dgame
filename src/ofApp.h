@@ -30,6 +30,8 @@ class ofApp : public ofBaseApp{
         Box  meshBounds(const ofMesh &);
         float getAGL();
         void doCollisions();
+        bool checkCollisions(ParticleSystem *, float, TreeNode&, int &);
+        void performCollisions(ParticleSystem *, TreeNode&, int &, ofVec3f);
 		
         Octree octree;
         ofEasyCam cam;
@@ -37,6 +39,7 @@ class ofApp : public ofBaseApp{
         ParticleSystem* landerSystem; // Use a particle system with one particle for the lander
         ThrusterForce* thrust;
         ParticleEmitter* exhaust;
+        ParticleEmitter* ballSpawner;
         ofLight light;
         ofImage backgroundImage;
         ofCamera *theCam = NULL;

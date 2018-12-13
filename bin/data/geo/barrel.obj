@@ -358,7 +358,7 @@ vn 0.999403 -0.034293 -0.004118
 vn 0.000000 -0.100804 -0.994906
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 74/97/1 75/98/2 40/54/3 3/3/4
 s 2
 f 3/3/5 40/54/6 42/56/7 43/58/8
@@ -848,7 +848,7 @@ vn 0.378651 -0.034293 -0.924904
 vn -0.919174 -0.100804 -0.380734
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 166/215/145 167/216/146 132/172/147 95/121/148
 s 2
 f 95/121/149 132/172/150 134/174/151 135/176/152
@@ -1338,7 +1338,7 @@ vn 0.703773 -0.034293 -0.709597
 vn -0.703505 -0.100804 -0.703505
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 258/333/289 259/334/290 224/290/291 187/239/292
 s 2
 f 187/239/293 224/290/294 226/292/295 227/294/296
@@ -1828,7 +1828,7 @@ vn 0.921753 -0.034293 -0.386260
 vn -0.380734 -0.100804 -0.919174
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 350/451/433 351/452/434 316/408/435 279/357/436
 s 2
 f 279/357/437 316/408/438 318/410/439 319/412/440
@@ -2318,7 +2318,7 @@ vn -0.386260 -0.034293 -0.921753
 vn -0.919174 -0.100804 0.380734
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 442/569/577 443/570/578 408/526/579 371/475/580
 s 2
 f 371/475/581 408/526/582 410/528/583 411/530/584
@@ -2808,7 +2808,7 @@ vn -0.004118 -0.034293 -0.999403
 vn -0.994906 -0.100804 -0.000000
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 534/687/721 535/688/722 500/644/723 463/593/724
 s 2
 f 463/593/725 500/644/726 502/646/727 503/648/728
@@ -3300,7 +3300,7 @@ vn 0.000000 1.000000 -0.000000
 vn 0.000000 1.000000 -0.000000
 s 1
 g pCylinder3
-usemtl initialShadingGroup
+usemtl blinn1SG
 f 553/709/865 554/710/866 570/726/867 569/725/868
 f 554/710/866 555/711/869 571/727/870 570/726/867
 f 555/711/869 556/712/871 572/728/872 571/727/870
@@ -3740,7 +3740,7 @@ vn 0.924904 -0.034293 0.378651
 vn 0.380734 -0.100804 -0.919174
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 722/937/993 723/938/994 688/894/995 651/843/996
 s 2
 f 651/843/997 688/894/998 690/896/999 691/898/1000
@@ -4230,7 +4230,7 @@ vn 0.709597 -0.034293 0.703773
 vn 0.703505 -0.100804 -0.703505
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 814/1055/1137 815/1056/1138 780/1012/1139 743/961/1140
 s 2
 f 743/961/1141 780/1012/1142 782/1014/1143 783/1016/1144
@@ -4720,7 +4720,7 @@ vn 0.386260 -0.034293 0.921753
 vn 0.919174 -0.100804 -0.380734
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 906/1173/1281 907/1174/1282 872/1130/1283 835/1079/1284
 s 2
 f 835/1079/1285 872/1130/1286 874/1132/1287 875/1134/1288
@@ -5210,7 +5210,7 @@ vn -0.703773 -0.034293 0.709597
 vn 0.703505 -0.100804 0.703505
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 998/1291/1425 999/1292/1426 964/1248/1427 927/1197/1428
 s 2
 f 927/1197/1429 964/1248/1430 966/1250/1431 967/1252/1432
@@ -5700,7 +5700,7 @@ vn -0.921753 -0.034293 0.386260
 vn 0.380734 -0.100804 0.919174
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1090/1409/1569 1091/1410/1570 1056/1366/1571 1019/1315/1572
 s 2
 f 1019/1315/1573 1056/1366/1574 1058/1368/1575 1059/1370/1576
@@ -6190,7 +6190,7 @@ vn -0.999403 -0.034293 0.004118
 vn -0.000000 -0.100804 0.994906
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1182/1527/1713 1183/1528/1714 1148/1484/1715 1111/1433/1716
 s 2
 f 1111/1433/1717 1148/1484/1718 1150/1486/1719 1151/1488/1720
@@ -6682,7 +6682,7 @@ vn 0.000000 1.000000 -0.000000
 vn 0.000000 1.000000 -0.000000
 s 1
 g pCylinder4
-usemtl initialShadingGroup
+usemtl blinn1SG
 f 1201/1549/1857 1202/1550/1858 1218/1566/1859 1217/1565/1860
 f 1202/1550/1858 1203/1551/1861 1219/1567/1862 1218/1566/1859
 f 1203/1551/1861 1204/1552/1863 1220/1568/1864 1219/1567/1862
@@ -7124,7 +7124,7 @@ vn 0.000000 1.000000 -0.000000
 vn 0.000000 1.000000 -0.000000
 s 1
 g pCylinder2
-usemtl initialShadingGroup
+usemtl blinn1SG
 f 1297/1681/1985 1298/1682/1986 1314/1698/1987 1313/1697/1988
 f 1298/1682/1986 1299/1683/1989 1315/1699/1990 1314/1698/1987
 f 1299/1683/1989 1300/1684/1991 1316/1700/1992 1315/1699/1990
@@ -7538,7 +7538,7 @@ vn 0.000000 -1.000000 0.000000
 vn 0.000000 1.000000 0.000000
 s 1
 g pCylinder1
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1393/1813/2113 1394/1814/2114 1414/1834/2115 1413/1833/2116
 f 1394/1814/2114 1395/1815/2117 1415/1835/2118 1414/1834/2115
 f 1395/1815/2117 1396/1816/2119 1416/1836/2120 1415/1835/2118
@@ -8000,7 +8000,7 @@ vn -0.924904 -0.034293 -0.378651
 vn -0.380734 -0.100804 0.919174
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1548/2033/2235 1549/2034/2236 1514/1990/2237 1477/1939/2238
 s 2
 f 1477/1939/2239 1514/1990/2240 1516/1992/2241 1517/1994/2242
@@ -8490,7 +8490,7 @@ vn -0.709597 -0.034293 -0.703773
 vn -0.703505 -0.100804 0.703505
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1640/2151/2379 1641/2152/2380 1606/2108/2381 1569/2057/2382
 s 2
 f 1569/2057/2383 1606/2108/2384 1608/2110/2385 1609/2112/2386
@@ -8980,7 +8980,7 @@ vn 0.004118 -0.034293 0.999403
 vn 0.994906 -0.100804 -0.000000
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1732/2269/2523 1733/2270/2524 1698/2226/2525 1661/2175/2526
 s 2
 f 1661/2175/2527 1698/2226/2528 1700/2228/2529 1701/2230/2530
@@ -9470,7 +9470,7 @@ vn -0.378651 -0.034293 0.924904
 vn 0.919174 -0.100804 0.380734
 s 1
 g plank plank1 plank2 plank3 plank4 plank5 plank6 plank7 plank8 plank9 plank10 plank11 plank12 plank13 plank14 plank15
-usemtl initialShadingGroup
+usemtl blinn2SG
 f 1824/2387/2667 1825/2388/2668 1790/2344/2669 1753/2293/2670
 s 2
 f 1753/2293/2671 1790/2344/2672 1792/2346/2673 1793/2348/2674
