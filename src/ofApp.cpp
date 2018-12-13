@@ -50,7 +50,7 @@ void ofApp::setup(){
     showLeafNodes = false;
     showOctree = true;
     
-    scene.loadModel("geo/mars-tree-singlemesh.obj");
+    scene.loadModel("geo/mountains-tree.obj");
     scene.setRotation(0, 180, 0, 0, 1);
     scene.setScaleNormalization(false);
     for(int i=0; i < scene.getNumMeshes(); i ++){
@@ -62,7 +62,7 @@ void ofApp::setup(){
     
     //mars.loadModel("geo/mountain_highPoly_v2.obj");
     //mars.loadModel("geo/mountain_highPoly.obj");
-    mars.loadModel("geo/mars-low-v2.obj");
+    mars.loadModel("geo/mountain_highPoly_v2.obj");
     //mars.loadModel("geo/moon-low-v1.obj");
     //mars.loadModel("geo/moon-houdini.obj");
     //mars.loadModel("geo/moon-crater-v1.obj");
