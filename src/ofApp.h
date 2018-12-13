@@ -36,7 +36,7 @@ class ofApp : public ofBaseApp{
 		
         Octree octree;
         ofEasyCam cam;
-        ofxAssimpModelLoader mars, lander;
+        ofxAssimpModelLoader mars, lander, tree;
         ParticleSystem* landerSystem; // Use a particle system with one particle for the lander
         ThrusterForce* thrust;
         ParticleEmitter* exhaust;

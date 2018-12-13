@@ -33,11 +33,14 @@ void ofApp::setup(){
     
     // load BG image
     //
-    bBackgroundLoaded = backgroundImage.load("images/starfield-plain.jpg");
+    bBackgroundLoaded = backgroundImage.load("images/sky.jpg");
 
     // setup rudimentary lighting
     //
     initLightingAndMaterials();
+    
+    tree.loadModel("geo/mars-tree.obj");
+    tree.setScaleNormalization(false);
     
     //mars.loadModel("geo/mountain_highPoly_v2.obj");
     //mars.loadModel("geo/mountain_highPoly.obj");
@@ -63,7 +66,7 @@ void ofApp::setup(){
                               mars.getSceneMax().y,
                               mars.getSceneMax().z));
     int start = ofGetElapsedTimeMillis();
-    octree.create(marsMesh, 10, boundingBox);
+    octree.create(marsMesh, 8, boundingBox);
     int end = ofGetElapsedTimeMillis();
     cout << "Octree built in " << end - start << " milliseconds" << endl;
     
@@ -191,8 +194,8 @@ void ofApp::draw(){
     if (bBackgroundLoaded) {
         ofPushMatrix();
         ofDisableDepthTest();
-        ofSetColor(50, 50, 50);
-        ofScale(2, 2);
+        ofSetColor(255);
+        ofScale(.3, .3);
         backgroundImage.draw(-200, -100);
         ofEnableDepthTest();
         ofPopMatrix();
@@ -209,13 +212,14 @@ void ofApp::draw(){
     }
     else {
         ofEnableLighting();              // shaded mode
-        mars.drawFaces();
+        //mars.drawFaces();
         //mars.drawWireframe();
         //ofNoFill();
         //Octree::drawBox(boundingBox);
         //octree.drawLeafNodes();
         if (bLanderLoaded) {
             lander.drawFaces();
+            tree.drawFaces();
             //lander.drawVertices();
             //lander.drawWireframe();
         }
