@@ -4,7 +4,7 @@
 #include "TransformObject.h"
 #include "ParticleSystem.h"
 
-typedef enum { DirectionalEmitter, RadialEmitter, SphereEmitter, DiscEmitter } EmitterType;
+typedef enum { DirectionalEmitter, RadialEmitter, SphereEmitter, DiscEmitter, PlaneEmitter } EmitterType;
 
 //  General purpose Emitter class for emitting sprites
 //  This works similar to a Particle emitter
@@ -51,6 +51,7 @@ public:
 	bool createdSys;
     bool hasTexture = false;
     vector<ofTexture> textures;
+    float width, length;
     void setTextures(vector<ofTexture> textures) {this->textures = textures; hasTexture = true;}
 	EmitterType type;
 };

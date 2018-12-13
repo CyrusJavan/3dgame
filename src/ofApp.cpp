@@ -147,8 +147,10 @@ void ofApp::setup(){
         ParticleSystem* ballSystem = new ParticleSystem();
         ballSystem->addForce(new GravityForce(ofVec3f(0,1,0)));
         ballSpawner = new ParticleEmitter(ballSystem);
-        ballSpawner->type = DirectionalEmitter;
         ballSpawner->init();
+        ballSpawner->type = PlaneEmitter; // Emit randomly from a plane, MUST SET WIDTH AND HEIGHT
+        ballSpawner->width = 3;
+        ballSpawner->length = 3;
         //ballSpawner->setGroupSize(50);
         ballSpawner->setLifespan(500);
         ballSpawner->setParticleRadius(.1);
