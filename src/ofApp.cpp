@@ -198,7 +198,7 @@ void ofApp::update(){
                        landerSystem->particles[0].position.y,
                        landerSystem->particles[0].position.z));
     insideBarrel.setPosition(landerSystem->particles[0].position.x,
-                             landerSystem->particles[0].position.y - 0.5,
+                             landerSystem->particles[0].position.y + 0.5,
                              landerSystem->particles[0].position.z);
     exhaust->update();
     ballSpawner->update();
@@ -292,7 +292,7 @@ void ofApp::draw(){
     // draw the collision points for debugging
     for (auto p : landerSystem->particles){
         ofSetColor(255);
-        ofDrawSphere(-p.position.x, -p.position.y, p.position.z, 0.01);
+        ofDrawSphere(p.position.x, p.position.y, p.position.z, 0.01);
     }
     
     insideBarrel.draw();
@@ -381,7 +381,7 @@ void ofApp::keyPressed(int key){
             break;
         case OF_KEY_UP:
             if (bAltKeyDown)
-                thrust->add(ofVec3f(0,0,-1) * speed);
+                thrust->add(ofVec3f(0,0,1) * speed);
             else
                 thrust->add(ofVec3f(0,1,0) * speed);
             exhaust->start();
@@ -391,7 +391,7 @@ void ofApp::keyPressed(int key){
             break;
         case OF_KEY_DOWN:
             if (bAltKeyDown)
-                thrust->add(ofVec3f(0,0,1) * speed);
+                thrust->add(ofVec3f(0,0,-1) * speed);
             else
                 thrust->add(ofVec3f(0,-1,0) * speed);
             exhaust->start();
@@ -400,14 +400,14 @@ void ofApp::keyPressed(int key){
             }
             break;
         case OF_KEY_LEFT:
-            thrust->add(ofVec3f(-1,0,0) * speed);
+            thrust->add(ofVec3f(1,0,0) * speed);
             exhaust->start();
             if (!rocketSound.isPlaying()){
                 rocketSound.play();
             }
             break;
         case OF_KEY_RIGHT:
-            thrust->add(ofVec3f(1,0,0) * speed);
+            thrust->add(ofVec3f(-1,0,0) * speed);
             exhaust->start();
             if (!rocketSound.isPlaying()){
                 rocketSound.play();
