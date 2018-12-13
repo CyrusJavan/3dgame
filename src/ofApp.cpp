@@ -73,7 +73,7 @@ void ofApp::setup(){
                               mars.getSceneMax().y,
                               mars.getSceneMax().z));
     int start = ofGetElapsedTimeMillis();
-    octree.create(marsMesh, 8, boundingBox);
+    octree.create(marsMesh, 8);
     int end = ofGetElapsedTimeMillis();
     cout << "Octree built in " << end - start << " milliseconds" << endl;
     
@@ -588,7 +588,7 @@ float ofApp::getAGL(){
     Ray ray = Ray(Vector3(landerPos.x, landerPos.y, landerPos.z),
                   Vector3(0, 1, 0));
     TreeNode possible;
-    if (octree.intersect(ray, possible)){
+    if (octree.intersect(ray,octree.root, possible)){
         float sumDist = 0;
         for (int v : possible.points){
             ofVec3f point = marsMesh.getVertex(v);
