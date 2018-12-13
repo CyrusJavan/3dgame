@@ -36,8 +36,8 @@ class ofApp : public ofBaseApp{
 		
         Octree octree;
         vector<Octree> octrees;
-        bool showOctree;
-        bool showLeafNodes;
+        bool showOctree = false;
+        bool showLeafNodes = false;
         ofEasyCam cam;
         ofxAssimpModelLoader mars, lander, scene;
         ParticleSystem* landerSystem; // Use a particle system with one particle for the lander
@@ -68,4 +68,6 @@ class ofApp : public ofBaseApp{
     
         bool bBackgroundLoaded = false;
         bool bLanderLoaded = false;
+    
+        bool gameStarted = false;
 };
