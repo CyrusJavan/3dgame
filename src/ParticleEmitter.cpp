@@ -57,11 +57,13 @@ void ParticleEmitter::draw() {
 			ofDrawSphere(position, radius/10);  // just draw a small sphere for point emitters 
 			break;
         case PlaneEmitter:
+                if (drawEmitter){
                 ofPushMatrix();
                 ofTranslate(position.x,position.y, position.z);
                 ofRotateDeg(-90,1,0,0);
                 ofDrawPlane(width, length);
                 ofPopMatrix();
+                }
             break;
 		case SphereEmitter:
 		case RadialEmitter:

@@ -310,6 +310,7 @@ bool Octree::collides(Particle & p, const float delta, TreeNode & node, TreeNode
             }
         }
 //        cout << ofGetElapsedTimeMillis()<< " Octree:: Collided!" << endl;
+
         return true;
         if(min < delta){
             //cout << ofGetElapsedTimeMillis()<< " Octree:: Collided!" << endl;
