@@ -600,6 +600,7 @@ float ofApp::getAGL(){
     Ray ray = Ray(Vector3(landerPos.x, landerPos.y, landerPos.z),
                   Vector3(0, 1, 0));
     TreeNode possible;
+    
     if (octree.intersect(ray, octree.root, possible)){
         float sumDist = 0;
         for (int v : possible.points){

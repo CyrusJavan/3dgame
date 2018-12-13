@@ -159,16 +159,18 @@ vector<int> Octree::convertVectorIndicesToInts (vector<ofIndexType> indexVector)
 
 void Octree::create(const ofMesh & geo, int numLevels) {
     float startTime = ofGetElapsedTimeMillis();
-	
+    mesh = geo;
     root = TreeNode();    
     //intialize root.box
     Box boundingBox = meshBounds(geo);
     root.box = boundingBox;
     
     vector<ofIndexType> marsIndices = geo.getIndices();
+    size_t marsVertices = geo.getNumVertices();
     
     //intialize root.points
     vector <int> pointsInsideMesh(marsIndices.size());
+   // vector <int> pointsInsideMesh(marsVertices);
     vector <int> pointsInsideBox;
     //convert ofIndexType vector to int vector
     pointsInsideMesh = convertVectorIndicesToInts(marsIndices);
@@ -299,8 +301,8 @@ bool Octree::collides(Particle & p, const float delta, TreeNode & node, TreeNode
         float min = 10000000;
         for (int i = 0; i < node.points.size(); i++){
             ofVec3f vert = mesh.getVertex(node.points[i]);
-            vert = ofVec3f(-vert.x, -vert.y, vert.z);
-            float d = vert.distance(ofVec3f(-p.position.x,-p.position.y,p.position.z));
+            vert = ofVec3f(vert.x, vert.y, vert.z);
+            float d = vert.distance(ofVec3f(p.position.x,p.position.y,p.position.z));
             if (d < min){
                 min = d;
                 nodeRtn = node;
@@ -317,7 +319,7 @@ bool Octree::collides(Particle & p, const float delta, TreeNode & node, TreeNode
     // Check if the particles collides with any of the children
     bool collided = false;
     for (TreeNode& child : node.children){
-        if (child.box.inside(Vector3(-p.position.x,-p.position.y,p.position.z))){
+        if (child.box.inside(Vector3(p.position.x,p.position.y,p.position.z))){
             if (collides(p,delta,child,nodeRtn,index)){
                 collided = true;
                 break;
