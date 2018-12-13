@@ -128,12 +128,14 @@ void Octree::getIndices(const ofMesh & mesh, vector<int>& points){
     points = indices;
 }
 
-void Octree::create(const ofMesh & geo, int numLevels) {
+void Octree::create(const ofMesh & geo, int numLevels, Box boundingBox) {
 	// initialize octree structure
 	//
     mesh = geo;
     root = TreeNode();
-    root.box = meshBounds(mesh);
+    //root.box = meshBounds(mesh);
+    root.box = boundingBox;
+    cout << "vertices: " << geo.getNumVertices() << endl;
     getIndices(mesh, root.points);
     subdivide(mesh, root, numLevels, 0);
 }

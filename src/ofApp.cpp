@@ -9,7 +9,7 @@ void ofApp::setup(){
     cam.setDistance(4);
     cam.setNearClip(.1);
     cam.setFov(65.5);
-    cam.setPosition(0, -5, 25);
+    cam.setPosition(0, -10, 10);
     cam.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0));
     //cam.rotateDeg(180, 0, 0, 1);
     cam.disableMouseInput();
@@ -39,17 +39,35 @@ void ofApp::setup(){
     //
     initLightingAndMaterials();
     
+    //mars.loadModel("geo/mountain_highPoly_v2.obj");
+    //mars.loadModel("geo/mountain_highPoly.obj");
     mars.loadModel("geo/mars-low-v2.obj");
     //mars.loadModel("geo/moon-low-v1.obj");
     //mars.loadModel("geo/moon-houdini.obj");
     //mars.loadModel("geo/moon-crater-v1.obj");
     mars.setScaleNormalization(false);
+    cout << "# of meshes " << mars.getNumMeshes() << endl;
     marsMesh = mars.getMesh(0);
-    boundingBox = meshBounds(marsMesh);
+    
+    //boundingBox = meshBounds(marsMesh);
+//    boundingBox = Box(Vector3(-mars.getSceneMin().x,
+//                              -mars.getSceneMin().y,
+//                              mars.getSceneMin().z),
+//                      Vector3(-mars.getSceneMax().x,
+//                              -mars.getSceneMax().y,
+//                              mars.getSceneMax().z));
+    boundingBox = Box(Vector3(mars.getSceneMin().x,
+                              mars.getSceneMin().y,
+                              mars.getSceneMin().z),
+                      Vector3(mars.getSceneMax().x,
+                              mars.getSceneMax().y,
+                              mars.getSceneMax().z));
     int start = ofGetElapsedTimeMillis();
-    octree.create(marsMesh, 8);
+    octree.create(marsMesh, 10, boundingBox);
     int end = ofGetElapsedTimeMillis();
     cout << "Octree built in " << end - start << " milliseconds" << endl;
+    
+    
     
     ofDisableArbTex();
     //ofLoadImage(mTex, "images/glow.png");
@@ -165,6 +183,7 @@ void ofApp::update(){
     
     // Update the above ground level
     agl = getAGL();
+    cam.lookAt(lander.getPosition(),ofVec3f(0,-1,0));
 }
 
 //--------------------------------------------------------------
@@ -191,6 +210,10 @@ void ofApp::draw(){
     else {
         ofEnableLighting();              // shaded mode
         mars.drawFaces();
+        //mars.drawWireframe();
+        //ofNoFill();
+        //Octree::drawBox(boundingBox);
+        //octree.drawLeafNodes();
         if (bLanderLoaded) {
             lander.drawFaces();
             //lander.drawVertices();
@@ -215,7 +238,7 @@ void ofApp::draw(){
     }
     
     insideBarrel.draw();
-
+    //barrelTree.drawLeafNodes();
     ofPopMatrix();
     theCam->end();
     

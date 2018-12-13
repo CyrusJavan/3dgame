@@ -15,7 +15,7 @@ public:
 class Octree {
 public:
 	
-	void create(const ofMesh & mesh, int numLevels);
+	void create(const ofMesh & mesh, int numLevels, Box boundingBox);
 	void subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int level);
 	bool intersect(const Ray &, const TreeNode & node, TreeNode & nodeRtn);
     bool intersect(const Ray & r, TreeNode & nodeRtn){
