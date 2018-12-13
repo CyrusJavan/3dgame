@@ -46,10 +46,6 @@ void ofApp::setup(){
     themeSong.setLoop(true);
     themeSong.setVolume(.1);
     
-    
-    showLeafNodes = false;
-    showOctree = true;
-    
     scene.loadModel("geo/mountains-tree.obj");
     scene.setRotation(0, 180, 0, 0, 1);
     scene.setScaleNormalization(false);
@@ -263,83 +259,101 @@ void ofApp::draw(){
         ofPopMatrix();
     }
     
-    theCam->begin();
-    ofPushMatrix();
-    if (bWireframe) {                    // wireframe mode  (include axis)
-        ofDisableLighting();
-        ofSetColor(ofColor::slateGray);
-        if (bLanderLoaded) {
-            lander.drawWireframe();
-        }
-    }
-    else {
-        ofEnableLighting();              // shaded mode
-        mars.drawFaces();
-        //mars.drawWireframe();
-        //ofNoFill();
-        //Octree::drawBox(boundingBox);
-        //octree.drawLeafNodes();
-        if (bLanderLoaded) {
-            lander.drawFaces();
-            scene.drawFaces();
-            //lander.drawVertices();
-            //lander.drawWireframe();
-        }
+    
+    
+    if(!gameStarted){
+        ofDrawBitmapString("Unbarrelble: A 3D game", ofGetWindowWidth() / 2 - 125, ofGetWindowHeight() / 2 - 100);
+        ofDrawBitmapString("V to start", ofGetWindowWidth() / 2 - 125, ofGetWindowHeight() / 2 - 80);
     }
     
-    // Draw the exhaust with a texture
-    ofPushMatrix();
-    mTex.bind();
-    exhaust->draw();
-    mTex.unbind();
-    ofPopMatrix();
-    
-    ofFill();
-    // draw falling balls
-    for (auto bs : ballSpawners){
-        bs->draw();
+    else if(gameStarted){
+        
+        theCam->begin();
+        ofPushMatrix();
+        
+        if (bWireframe) {                    // wireframe mode  (include axis)
+            ofDisableLighting();
+            ofSetColor(ofColor::slateGray);
+            if (bLanderLoaded) {
+                lander.drawWireframe();
+            }
+        }
+        else {
+            ofEnableLighting();              // shaded mode
+            mars.drawFaces();
+            //mars.drawWireframe();
+            //ofNoFill();
+            //Octree::drawBox(boundingBox);
+            //octree.drawLeafNodes();
+            if (bLanderLoaded) {
+                lander.drawFaces();
+                scene.drawFaces();
+                //lander.drawVertices();
+                //lander.drawWireframe();
+            }
+        }
+        
+        // Draw the exhaust with a texture
+        ofPushMatrix();
+        mTex.bind();
+        exhaust->draw();
+        mTex.unbind();
+        ofPopMatrix();
+        
+        ofFill();
+        // draw falling balls
+        for (auto bs : ballSpawners){
+            bs->draw();
+        }
+        
+        ofNoFill();
+        // draw octrees
+        //draw Octree
+        if(showOctree){
+            
+            for(int i=0; i<octrees.size(); i++){
+                octrees[i].draw(octrees[i].root, 4, 0);
+            }
+            //octree.draw(octree.root, 10, 0);
+        }
+        
+        //draw leaf nodes
+        if(!showOctree && showLeafNodes){
+            for(int i=0; i<octrees.size(); i++){
+                octrees[i].drawLeafNodes(octrees[i].root);
+            }
+            //        octree.drawLeafNodes(octree.root);
+        }
+        
+        // draw the collision points for debugging
+        for (auto p : landerSystem->particles){
+            ofSetColor(255);
+            ofDrawSphere(p.position.x, p.position.y, p.position.z, 0.01);
+        }
+        
+        insideBarrel.draw();
+        //barrelTree.drawLeafNodes();
+        ofPopMatrix();
+        theCam->end();
+        
+        // draw screen data
+        //
+        ofSetColor(ofColor::white);
+        string str;
+        str = "Frame Rate: " + std::to_string(ofGetFrameRate());
+        ofDrawBitmapString(str, ofGetWindowWidth() - 170, 20);
+        str = "AGL: " + std::to_string(agl);
+        ofDrawBitmapString(str, ofGetWindowWidth() - 170, 40);
+        str = "Score: " + std::to_string(score);
+        ofDrawBitmapString(str, ofGetWindowWidth() - 170, 60);
+        
+        ofDrawBitmapString("ARROW KEYS to move, R to reset position, B to quit", 20, 20);
+        ofDrawBitmapString("1 for normal perspective, 2 for follow cam, 3 for top down view", 20, 40);
+        ofDrawBitmapString("O to un/draw Octree, L to un/draw Leaf Nodes", 20, 60);
+        
+        
     }
 
-    ofNoFill();
-    // draw octrees
-    //draw Octree
-    if(showOctree){
-        
-        for(int i=0; i<octrees.size(); i++){
-            octrees[i].draw(octrees[i].root, 4, 0);
-        }
-        //octree.draw(octree.root, 10, 0);
-    }
-    
-    //draw leaf nodes
-    if(!showOctree && showLeafNodes){
-        for(int i=0; i<octrees.size(); i++){
-            octrees[i].drawLeafNodes(octrees[i].root);
-        }
-        //        octree.drawLeafNodes(octree.root);
-    }
-    
-    // draw the collision points for debugging
-    for (auto p : landerSystem->particles){
-        ofSetColor(255);
-        ofDrawSphere(p.position.x, p.position.y, p.position.z, 0.01);
-    }
-    
-    insideBarrel.draw();
-    //barrelTree.drawLeafNodes();
-    ofPopMatrix();
-    theCam->end();
-    
-    // draw screen data
-    //
-    ofSetColor(ofColor::white);
-    string str;
-    str = "Frame Rate: " + std::to_string(ofGetFrameRate());
-    ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
-    str = "AGL: " + std::to_string(agl);
-    ofDrawBitmapString(str, ofGetWindowWidth() - 170, 30);
-    str = "Score: " + std::to_string(score);
-    ofDrawBitmapString(str, ofGetWindowWidth() - 170, 45);
 }
 
 //--------------------------------------------------------------
@@ -371,20 +385,17 @@ void ofApp::keyPressed(int key){
             //cam.reset();
             landerSystem->particles[0].position = ofVec3f(0,10,0);
             break;
-        case 's':
-            //savePicture();
-            break;
+        case 'b':
+            gameStarted = false;
         case 't':
             break;
         case 'u':
             break;
         case 'v':
+            gameStarted = true;
             //togglePointsDisplay();
             break;
         case 'V':
-            break;
-        case 'w':
-            //toggleWireframeMode();
             break;
         case OF_KEY_F1:
         case '1':
@@ -397,6 +408,49 @@ void ofApp::keyPressed(int key){
         case OF_KEY_F3:
         case '3':
             theCam = &topCam;
+            break;
+        case 'w':
+            thrust->add(ofVec3f(0,1,0) * speed);
+            exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
+            break;
+        case 'a':
+            thrust->add(ofVec3f(1,0,0) * speed);
+            exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
+            break;
+        case 's':
+            thrust->add(ofVec3f(0,-1,0) * speed);
+            exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
+            break;
+        case 'd':
+            thrust->add(ofVec3f(-1,0,0) * speed);
+            exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
+            break;
+        case 'q':
+            thrust->add(ofVec3f(0,0,1) * speed);
+            exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
+
+            break;
+        case 'e':
+            thrust->add(ofVec3f(0,0,-1) * speed);
+            exhaust->start();
+            if (!rocketSound.isPlaying()){
+                rocketSound.play();
+            }
             break;
         case OF_KEY_ALT:
             cam.enableMouseInput();
@@ -480,6 +534,25 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
+//    ofVec3f mouse(mouseX, mouseY);
+//    ofVec3f rayPoint = cam.screenToWorld(mouse);
+//    ofVec3f rayDir = rayPoint - cam.getPosition();
+//    rayDir.normalize();
+//    Ray ray = Ray(Vector3(rayPoint.x, rayPoint.y, rayPoint.z),
+//                  Vector3(rayDir.x, rayDir.y, rayDir.z));
+//
+//    float startTime = ofGetElapsedTimeMillis();
+//    for(int i=0; i<octrees.size(); i++){
+//        if (octrees[i].intersect(ray, octrees[i].root, octrees[i].selectedNode)) {
+//            //rayIntersected = true;
+//            int pt;
+//            pt = octrees[i].selectedNode.points[0];
+//            ofVec3f intersectPoint = octrees[i].mesh.getVertex(pt);
+//            cout << "(x,y,z): " << intersectPoint << endl;
+    //        float endTime = ofGetElapsedTimeMillis();
+    //        cout << endTime - startTime << " milliseconds to select correct leaf node with " << octree.selectedNode.points.size() << " points" << endl << endl;
+//            }
+//        }
 
 }
 
@@ -562,9 +635,9 @@ void ofApp::doCollisions(){
     
     if(checkCollisions(landerSystem, delta, potential, index)){
         //cout << "Barrel collision" << endl;
-        //cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
+//        cout << "Barrel old velocity: " << landerSystem->particles[0].velocity <<endl;
         performCollisions(landerSystem, potential, index, inputVelocity);
-        //cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
+//        cout << "Barrel new velocity " << landerSystem->particles[0].velocity <<endl;
     }
     
     TreeNode potential2;
