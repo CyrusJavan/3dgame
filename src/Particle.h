@@ -20,7 +20,10 @@ public:
 	void    integrate();
 	void    draw();
 	float   age();        // sec
+    void    setTexture(ofTexture&);
 	ofColor color;
+    ofTexture tex;
+    bool hasTexture;
 };
 
 

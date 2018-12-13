@@ -49,5 +49,8 @@ public:
 	bool visible;
 	int groupSize;      // number of particles to spawn in a group
 	bool createdSys;
+    bool hasTexture = false;
+    vector<ofTexture> textures;
+    void setTextures(vector<ofTexture> textures) {this->textures = textures; hasTexture = true;}
 	EmitterType type;
 };

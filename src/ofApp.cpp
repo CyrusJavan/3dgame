@@ -82,6 +82,11 @@ void ofApp::setup(){
     ofDisableArbTex();
     //ofLoadImage(mTex, "images/glow.png");
     ofLoadImage(mTex, "images/fire.jpg");
+    ofLoadImage(orangeTexture, "images/orange.jpg");
+    ofLoadImage(appleTexture, "images/apple.png");
+    ofLoadImage(peachTexture, "images/peach.jpg");
+    ofLoadImage(limeTexture, "images/lime.jpg");
+    ofLoadImage(plumTexture, "images/plum.jpg");
     
     // load lander model
     //
@@ -150,6 +155,8 @@ void ofApp::setup(){
         ballSpawner->setRate(1);
         ballSpawner->setVelocity(ofVec3f(0,1,0));
         ballSpawner->setPosition(ofVec3f(0,-10,0));
+        vector<ofTexture> fruitTextures = {orangeTexture, appleTexture, peachTexture, limeTexture, plumTexture};
+        ballSpawner->setTextures(fruitTextures);
         //ballSpawner->setOneShot(true);
         ballSpawner->start();
         //ballSpawner->setOneShot(true);
@@ -244,6 +251,8 @@ void ofApp::draw(){
     
     // draw falling balls
     ballSpawner->draw();
+
+    
     
     // draw the collision points for debugging
     for (auto p : landerSystem->particles){

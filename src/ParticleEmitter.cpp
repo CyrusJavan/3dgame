@@ -141,8 +141,10 @@ void ParticleEmitter::spawn(float time) {
 	case DirectionalEmitter:
 		particle.velocity = velocity;
 		particle.position.set(position);
+            if (hasTexture){
+                particle.setTexture(textures[(int) (ofRandom(textures.size()))]);
+            }
 		break;
-	
 	}
 
 	// other particle attributes
